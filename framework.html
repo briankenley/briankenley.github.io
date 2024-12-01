@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Portfolio | Brian Kenley</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <!-- link ini untuk connect dengan bootstrap-->
+    <style>
+      .jumbotron {
+        background-color: rgba(192, 222, 232, 0.4);
+        padding-top: 2rem;
+      }
+      body {
+        min-height: 2000px;
+      }
+      #projects {
+        background-color: rgba(162, 217, 255, 0.4);
+      }
+      footer p {
+        background-color: #5000ca;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- untuk menggabungkan 2 style dapat langsung diberi spasi dalam classnya -->
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-primary navbar-dark shadow-lg">
+      <div class="container">
+        <a class="navbar-brand" href="#">Brian Kenley</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#about">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#projects">Projects</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#contact">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- -->
+    <!-- Jumbotron-->
+    <div class="jumbotron text-center">
+      <img src="ronaldo.jpg" alt="gambar orang" class="rounded-circle" />
+      <h1 class="display-4">Cristiano Ronaldo</h1>
+      <p class="lead">Football Player | Model</p>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+        <path
+          fill="#ffffff"
+          fill-opacity="1"
+          d="M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,250.7C1248,256,1344,288,1392,304L1440,320L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+        ></path>
+      </svg>
+    </div>
+    <!-- Akhir Jumbotron-->
+    <!-- About-->
+    <section id="about">
+      <div class="container">
+        <div class="row text-center mb-3">
+          <div class="col"><h2>About me</h2></div>
+        </div>
+        <div class="row justify-content-center text-center">
+          <div class="col-5 fs-3">
+            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsum
+            blanditiis fuga aut sit ut, omnis mollitia et aliquid nihil nulla.
+            Aspernatur reiciendis necessitatibus neque odio laudantium accusamus
+            voluptatibus atque provident.Lorem ipsum dolor sit amet consectetur
+            adipisicing elit. Temporibus animi modi ad quae omnis velit odit
+            dolore nam necessitatibus? Ipsam ad ea amet illo temporibus tenetur
+            illum sequi optio rem?
+          </div>
+          <div class="col-5 fs-3">
+            Lorem ipsum dolor, sit amet consectetur adipisicing elit. Temporibus
+            eveniet sequi pariatur fugiat. Eos eaque accusantium magnam,
+            corrupti animi eveniet, dolor ullam, saepe cupiditate ipsam nemo
+            quam perspiciatis nihil. Lorem ipsum dolor, sit amet consectetur
+            adipisicing elit. Aut, expedita totam. Blanditiis, aliquid. At
+            soluta sequi repudiandae quia in rem nesciunt asperiores incidunt
+            nemo deserunt amet iure, quo ut impedit!
+          </div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+          <path
+            fill="#a2d9ff"
+            fill-opacity="0.4"
+            d="M0,224L48,208C96,192,192,160,288,176C384,192,480,256,576,234.7C672,213,768,107,864,90.7C960,75,1056,149,1152,154.7C1248,160,1344,96,1392,64L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          ></path>
+        </svg>
+        <!-- Akhir About-->
+        <!-- Project-->
+        <section id="projects">
+          <div class="container">
+            <div class="row text-center justify-content-center mb-3">
+              <div class="col"><h2>My Projects</h2></div>
+            </div>
+            <div class="row justify-content-center fs-5">
+              <div class="col-4 md-4 mb-3">
+                <div class="card" style="width: 18rem">
+                  <img src="bola.jpg" class="card-img-top" alt="catur" />
+                  <div class="card-body">
+                    <p class="card-text">Project 1.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-4 md-4 mb-3">
+                <div class="card" style="width: 18rem">
+                  <img src="bola.jpg" class="card-img-top" alt="catur" />
+                  <div class="card-body">
+                    <p class="card-text">Project 2.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-4 md-4 mb-3">
+                <div class="card" style="width: 18rem">
+                  <img src="bola.jpg" class="card-img-top" alt="catur" />
+                  <div class="card-body">
+                    <p class="card-text">Project 3.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-4 md-4 mb-3">
+                <div class="card" style="width: 18rem">
+                  <img src="bola.jpg" class="card-img-top" alt="catur" />
+                  <div class="card-body">
+                    <p class="card-text">Project 4.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-4 md-4 mb-3">
+                <div class="card" style="width: 18rem">
+                  <img src="bola.jpg" class="card-img-top" alt="catur" />
+                  <div class="card-body">
+                    <p class="card-text">Project 4.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+            <path
+              fill=" #ffffff"
+              fill-opacity="1"
+              d="M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,250.7C1248,256,1344,288,1392,304L1440,320L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            ></path>
+          </svg>
+        </section>
+
+        <!-- Akhir Project-->
+        <!-- Contact -->
+        <section id="contact">
+          <div class="container">
+            <div class="row text-center justify-content-center mb-3">
+              <div class="col"><h2>Contact Me</h2></div>
+            </div>
+
+            <div class="row justify-content-center">
+              <div class="col-md-6">
+                <form>
+                  <div class="mb-3">
+                    <label for="nama" class="form-label">Nama Lengkap</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="nama"
+                      aria-describedby="nama"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="email"
+                      aria-describedby="email"
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label for="pesan" class="form-label"
+                      >Tinggalkan pesan Anda</label
+                    >
+                    <div class="form-floating">
+                      <textarea
+                        class="form-control"
+                        placeholder="Leave a comment here"
+                        id="floatingTextarea2"
+                        style="height: 100px"
+                      ></textarea>
+                      <label for="floatingTextarea2">Comments</label>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- Akhir Contact -->
+        <!-- Footer -->
+        <footer>
+          <section id="footer" class="text-center fs-5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+              <path
+                fill="#5000ca"
+                fill-opacity="1"
+                d="M0,192L24,165.3C48,139,96,85,144,64C192,43,240,53,288,69.3C336,85,384,107,432,101.3C480,96,528,64,576,96C624,128,672,224,720,224C768,224,816,128,864,90.7C912,53,960,75,1008,101.3C1056,128,1104,160,1152,176C1200,192,1248,192,1296,181.3C1344,171,1392,149,1416,138.7L1440,128L1440,320L1416,320C1392,320,1344,320,1296,320C1248,320,1200,320,1152,320C1104,320,1056,320,1008,320C960,320,912,320,864,320C816,320,768,320,720,320C672,320,624,320,576,320C528,320,480,320,432,320C384,320,336,320,288,320C240,320,192,320,144,320C96,320,48,320,24,320L0,320Z"
+              ></path>
+            </svg>
+            <p>&copy; website made by Brian Kenley</p>
+          </section>
+        </footer>
+        <!-- Akhir Footer -->
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+          crossorigin="anonymous"
+        ></script>
+        <!-- ini juga untuk connect dengan framework bootstrap javascript-->
+      </div>
+    </section>
+  </body>
+</html>
