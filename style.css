@@ -1,0 +1,113 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.8rem;
+}
+
+.hero-section {
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("/api/placeholder/1600/600") center/cover no-repeat;
+  color: white;
+  padding: 100px 0;
+}
+
+.feature-card {
+  transition: transform 0.3s;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  color: #d35400;
+  margin-bottom: 20px;
+}
+
+.car-card {
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.car-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.car-card img {
+  height: 200px;
+  object-fit: cover;
+}
+
+.section-title {
+  position: relative;
+  margin-bottom: 45px;
+  text-align: center;
+}
+
+.section-title:after {
+  content: "";
+  position: absolute;
+  width: 100px;
+  height: 3px;
+  background-color: #8e44ad;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.badge-custom {
+  background-color: #d35400;
+  color: white;
+}
+
+.testimonial-card {
+  background-color: antiquewhite;
+  border-radius: 0.75rem;
+  padding: 25px;
+}
+
+.btn-primary {
+  background-color: #d35400;
+  border-color: #d35400;
+}
+
+.btn-outline-primary {
+  color: #d35400;
+  border-color: #d35400;
+}
+
+.btn-outline-primary:hover {
+  background-color: #d35400;
+  color: white;
+}
+
+footer {
+  background-color: #2c3e50;
+  color: white;
+}
+
+.footer-links a {
+  color: #bdc3c7;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: white;
+}
+
+.car-filter-section {
+  background-color: #f39c12;
+  border-radius: 10px;
+  padding: 20px;
+}
