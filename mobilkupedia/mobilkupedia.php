@@ -39,30 +39,16 @@ session_start();
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link active" href="mobilkupedia.php">Beranda</a> <?php // Corrected link and added active class ?>
+              <a class="nav-link active" href="#">Beranda</a>
             </li>
-            <?php if (isset($_SESSION['userid'])): // Show Dashboard, Jual/Tambah, Beli only if logged in ?>
-              <li class="nav-item">
-                <a class="nav-link" href="dashboard.php">Dashboard</a>
-              </li>
-              <?php // Dynamically show 'Tambah Mobil' for admin or 'Jual Mobil' for others ?>
-              <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                  <li class="nav-item">
-                      <a class="nav-link" href="admin_add_car.php">Tambah Mobil</a>
-                  </li>
-              <?php else: // Non-admin logged-in users ?>
-                  <li class="nav-item">
-                      <a class="nav-link" href="jual.php">Jual Mobil</a>
-                  </li>
-              <?php endif; ?>
-              <li class="nav-item">
-                <a class="nav-link" href="beli.php">Beli Mobil</a>
-              </li>
-            <?php else: // Show Beli Mobil even if not logged in, but it will redirect ?>
-              <li class="nav-item">
-                <a class="nav-link" href="beli.php">Beli Mobil</a>
-              </li>
-            <?php endif; ?>
+            <li class="nav-item">
+              <a class="nav-link" href="dashboard.php">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="jual.php">Jual Mobil</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="beli.php">Beli Mobil</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="about.php">Tentang Kami</a>
@@ -71,16 +57,11 @@ session_start();
               <a class="nav-link" href="kontak.php">Kontak</a>
             </li>
           </ul>
-          <div class="d-flex align-items-center"> <?php // Added align-items-center for better vertical alignment ?>
-            <?php if (isset($_SESSION['userid'])): ?>
-                <?php // Display welcome message and logout button ?>
-                <span class="navbar-text me-3">Selamat datang, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
-                <a href="logout.php" class="btn btn-outline-danger">Keluar</a>
-            <?php else: ?>
-                <?php // Display login and signup buttons ?>
-                <a href="login.php" class="btn btn-outline-primary me-2">Masuk</a>
-                <a href="signup.php" class="btn btn-primary">Daftar</a>
-            <?php endif; ?>
+          <div class="d-flex">
+<?php if (!isset($_SESSION['userid'])): ?>
+            <a href="login.php" class="btn btn-outline-primary me-2">Masuk</a>
+            <a href="signup.php" class="btn btn-primary">Daftar</a>
+<?php endif; ?>
           </div>
         </div>
       </div>
@@ -228,7 +209,80 @@ session_start();
       </div>
     </section>
 
-    <?php include 'footer.php';?>
+    <footer class="py-5" id="kontak">
+      <div class="container">
+        <div class="row g-4">
+          <div class="col-lg-4">
+            <h5 class="mb-3">MobilKupedia</h5>
+            <p class="">
+              Platform terpercaya untuk jual beli mobil dengan proses yang
+              mudah, aman, dan transparan.
+            </p>
+            <div class="d-flex gap-3 mt-3">
+              <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                ><i class="fab fa-facebook-f"></i
+              ></a>
+              <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                ><i class="fab fa-instagram"></i
+              ></a>
+              <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                ><i class="fab fa-twitter"></i
+              ></a>
+              <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                ><i class="fab fa-youtube"></i
+              ></a>
+            </div>
+          </div>
+          <div class="col-lg-2 col-md-4 footer-links">
+            <h5 class="mb-3">Layanan</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2"><a href="#">Jual Mobil</a></li>
+              <li class="mb-2"><a href="#">Beli Mobil</a></li>
+              <li class="mb-2"><a href="#">Katalog Mobil</a></li>
+              <li class="mb-2"><a href="#">Verifikasi Mobil</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-2 col-md-4 footer-links">
+            <h5 class="mb-3">Perusahaan</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2"><a href="#">Tentang Kami</a></li>
+              <li class="mb-2"><a href="#">Karir</a></li>
+              <li class="mb-2"><a href="#">Blog</a></li>
+              <li class="mb-2"><a href="#">FAQ</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-4 col-md-4">
+            <h5 class="mb-3">Kontak</h5>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <i class="fas fa-map-marker-alt me-2"></i>  Medan
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-phone me-2"></i> +62-813-6789-7890
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-envelope me-2"></i> mobilkupedia@gmail.com
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-clock me-2"></i> Senin - Jumat: 08.00 - 17.00
+              </li>
+            </ul>
+          </div>
+        </div>
+        <hr class="my-4 bg-secondary" />
+        <div class="row">
+          <div class="col-md-6">
+            <p class="mb-0">&copy; 2025 MobilKupedia. Hak Cipta Dilindungi.</p>
+          </div>
+          <div class="col-md-6 text-md-end footer-links">
+            <a href="#" class="me-3">Kebijakan Privasi</a>
+            <a href="#" class="me-3">Syarat & Ketentuan</a>
+            <a href="#">Peta Situs</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

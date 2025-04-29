@@ -18,13 +18,6 @@
 session_start();
 include 'db.php'; // Include database connection
 
-// Check if user is logged in
-if (!isset($_SESSION['userid'])) {
-    // Redirect to login page if not logged in
-    header("Location: login.php?message=Silakan login untuk melihat daftar mobil.");
-    exit();
-}
-
 // --- Search Logic ---
 $search_keyword = isset($_GET['keyword']) ? trim(mysqli_real_escape_string($conn, $_GET['keyword'])) : '';
 
@@ -67,18 +60,11 @@ $result = $conn->query($sql);
             <li class="nav-item">
                 <a class="nav-link" href="dashboard.php">Dashboard</a>
               </li>
-            <?php // Dynamically show 'Tambah Mobil' for admin or 'Jual Mobil' for others ?>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin_add_car.php">Tambah Mobil</a>
-                </li>
-            <?php else: // Non-admin logged-in users ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="jual.php">Jual Mobil</a>
-                </li>
-            <?php endif; ?>
             <li class="nav-item">
-              <a class="nav-link active" href="beli.php">Beli Mobil</a> <?php // Add active class ?>
+              <a class="nav-link" href="jual.php">Jual Mobil</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="beli.php">Beli Mobil</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="about.php">Tentang Kami</a>
@@ -101,10 +87,10 @@ $result = $conn->query($sql);
       <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="section-title mb-0">Cari Mobil Impian Anda</h2>
-            <?php // Add Car button for Admin - Link to admin page ?>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <a href="admin_add_car.php" class="btn btn-success">
-                    <i class="fas fa-plus me-1"></i> Tambah Mobil (Admin)
+            <?php // Add Car button for Admin
+            if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                <a href="jual.php" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i> Tambah Mobil
                 </a>
             <?php endif; ?>
         </div>
@@ -171,6 +157,78 @@ $result = $conn->query($sql);
         </div>
       </div>
     </section>
-    <?php include 'footer.php';?>
+    <footer class="py-5" id="kontak">
+        <div class="container">
+          <div class="row g-4">
+            <div class="col-lg-4">
+              <h5 class="mb-3">MobilKupedia</h5>
+              <p class="">
+                Platform terpercaya untuk jual beli mobil dengan proses yang
+                mudah, aman, dan transparan.
+              </p>
+              <div class="d-flex gap-3 mt-3">
+                <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                  ><i class="fab fa-facebook-f"></i
+                ></a>
+                <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                  ><i class="fab fa-instagram"></i
+                ></a>
+                <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                  ><i class="fab fa-twitter"></i
+                ></a>
+                <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                  ><i class="fab fa-youtube"></i
+                ></a>
+              </div>
+            </div>
+            <div class="col-lg-2 col-md-4 footer-links">
+              <h5 class="mb-3">Layanan</h5>
+              <ul class="list-unstyled">
+                <li class="mb-2"><a href="#">Jual Mobil</a></li>
+                <li class="mb-2"><a href="#">Beli Mobil</a></li>
+                <li class="mb-2"><a href="#">Katalog Mobil</a></li>
+                <li class="mb-2"><a href="#">Verifikasi Mobil</a></li>
+              </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 footer-links">
+              <h5 class="mb-3">Perusahaan</h5>
+              <ul class="list-unstyled">
+                <li class="mb-2"><a href="#">Tentang Kami</a></li>
+                <li class="mb-2"><a href="#">Karir</a></li>
+                <li class="mb-2"><a href="#">Blog</a></li>
+                <li class="mb-2"><a href="#">FAQ</a></li>
+              </ul>
+            </div>
+            <div class="col-lg-4 col-md-4">
+              <h5 class="mb-3">Kontak</h5>
+              <ul class="list-unstyled">
+                <li class="mb-2">
+                  <i class="fas fa-map-marker-alt me-2"></i> Medan
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-phone me-2"></i> +62-813-6789-7890
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-envelope me-2"></i> mobilkupedia@gmail.com
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-clock me-2"></i> Senin - Jumat: 08.00 - 17.00
+                </li>
+              </ul>
+            </div>
+          </div>
+          <hr class="my-4 bg-secondary" />
+          <div class="row">
+            <div class="col-md-6">
+              <p class="mb-0">&copy; 2025 MobilKupedia. Hak Cipta Dilindungi.</p>
+            </div>
+            <div class="col-md-6 text-md-end footer-links">
+              <a href="#" class="me-3">Kebijakan Privasi</a>
+              <a href="#" class="me-3">Syarat & Ketentuan</a>
+              <a href="#">Peta Situs</a>
+            </div>
+          </div>
+        </div>
+      </footer>
   </body>
 </html>

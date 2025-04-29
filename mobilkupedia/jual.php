@@ -18,28 +18,12 @@
 session_start();
 include 'db.php';
 
-// Log PHP Integer Max Size
-error_log("PHP_INT_MAX: " . PHP_INT_MAX);
-
-// Attempt to relax SQL mode for this session to potentially avoid truncation issues
-if ($conn) {
-    $conn->query("SET SESSION sql_mode = ''");
-}
-
 // Redirect if not logged in
 if (!isset($_SESSION['userid'])) {
     header("Location: login.php?message=Silakan login untuk menjual mobil.");
     exit();
 }
 
-// --- Redirect Admin Users ---
-// If the logged-in user is an admin, redirect them to the dedicated admin page
-if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-    header("Location: admin_add_car.php?message=Gunakan halaman ini untuk menambah mobil.");
-    exit();
-}
-
-// Proceed for non-admin logged-in users
 $user_id = $_SESSION['userid'];
 $success_message = '';
 $error_message = '';
@@ -49,19 +33,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $make = trim($_POST['name'] ?? '');
     $model = trim($_POST['model'] ?? '');
     $year = filter_input(INPUT_POST, 'year', FILTER_VALIDATE_INT);
-    // Get price as string, validate as non-negative integer string for BIGINT
-    $price_input = trim($_POST['price'] ?? '');
-    $is_valid_price_format = is_numeric($price_input) && strpos($price_input, '.') === false && strpos($price_input, ',') === false && strpos(trim($price_input), '-') !== 0;
-    $price_int_value = $is_valid_price_format ? (int)$price_input : false; // Cast only if valid format
-
+    $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT);
     $mileage = filter_input(INPUT_POST, 'mileage', FILTER_VALIDATE_INT);
     $description = trim($_POST['description'] ?? '');
     $image_path = ''; // Placeholder for image path
 
     // --- Basic Input Validation ---
-    // Validate price as a non-negative integer string
-    if (empty($make) || empty($model) || $year === false || !$is_valid_price_format || $price_int_value === false || $mileage === false || empty($description)) {
-         $error_message = "Semua field wajib diisi dengan benar. Pastikan harga (angka bulat tanpa titik/koma) dan jarak tempuh adalah angka numerik yang valid dan tidak negatif.";
+    if (empty($make) || empty($model) || $year === false || $price === false || $mileage === false || empty($description)) {
+        $error_message = "Semua field wajib diisi dengan benar.";
     }
     // --- Image Upload Handling (Placeholder) ---
     // A real implementation would involve:
@@ -97,25 +76,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $conn->prepare($sql);
 
         if ($stmt) {
-            // Log the price integer value just before binding
-            error_log("Attempting to bind price (int value): " . $price_int_value);
-
-            // Bind parameters (i: integer) - Binding price as integer for BIGINT
-            $stmt->bind_param("issiiiss", $user_id, $make, $model, $year, $price_int_value, $mileage, $description, $image_path); // Bind the integer value
+            // Bind parameters (i: integer, s: string, d: double)
+            $stmt->bind_param("issidiss", $user_id, $make, $model, $year, $price, $mileage, $description, $image_path);
 
             if ($stmt->execute()) {
                 $success_message = "Mobil berhasil ditambahkan.";
-                error_log("Car added successfully with price (int value): " . $price_int_value); // Log on success
                 // Optionally clear form or redirect
                 // header("Location: dashboard.php"); exit();
             } else {
                 $error_message = "Error: Gagal menambahkan mobil. " . $stmt->error;
-                error_log("Error adding car: " . $stmt->error . " | Price int value attempted: " . $price_int_value); // Log on error
             }
             $stmt->close();
         } else {
             $error_message = "Error: Gagal mempersiapkan statement. " . $conn->error;
-            error_log("Error preparing statement: " . $conn->error); // Log prepare error
         }
     }
 }
@@ -148,17 +121,9 @@ $conn->close(); // Close connection after processing
             <li class="nav-item">
               <a class="nav-link" href="dashboard.php">Dashboard</a>
             </li>
-            <?php // Dynamically show 'Tambah Mobil' for admin or 'Jual Mobil' for others ?>
-            <?php // Note: Admins are redirected away from this page earlier, but this keeps the nav consistent. ?>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin_add_car.php">Tambah Mobil</a>
-                </li>
-            <?php else: // Non-admin logged-in users ?>
-                <li class="nav-item">
-                    <a class="nav-link active" href="jual.php">Jual Mobil</a> <?php // Add active class ?>
-                </li>
-            <?php endif; ?>
+            <li class="nav-item">
+              <a class="nav-link" href="jual.php">Jual Mobil</a>
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="beli.php">Beli Mobil</a>
             </li>
@@ -216,12 +181,12 @@ $conn->close(); // Close connection after processing
                     <input type="number" name="year" class="form-control" id="year" placeholder="Contoh: 2022" required min="1900" max="<?php echo date('Y') + 1; // Allow next year ?>">
                     <div class="invalid-feedback">Tahun wajib diisi (antara 1900 - <?php echo date('Y') + 1; ?>).</div>
                 </div>
-                 <div class="col-md-6 mb-3">
-                     <label for="price" class="form-label">Harga (Rp - Angka Bulat)</label>
-                     <input type="number" inputmode="numeric" pattern="[0-9]*" name="price" class="form-control" id="price" placeholder="Contoh: 250000000" required min="0">
-                      <div class="invalid-feedback">Harga wajib diisi (angka bulat positif).</div>
-                 </div>
-             </div>
+                <div class="col-md-6 mb-3">
+                    <label for="price" class="form-label">Harga (Rp)</label>
+                    <input type="number" name="price" class="form-control" id="price" placeholder="Contoh: 250000000" required min="0">
+                     <div class="invalid-feedback">Harga wajib diisi (angka positif).</div>
+                </div>
+            </div>
              <div class="mb-3">
                 <label for="mileage" class="form-label">Jarak Tempuh (km)</label>
                 <input type="number" name="mileage" class="form-control" id="mileage" placeholder="Contoh: 15000" required min="0">
@@ -242,7 +207,79 @@ $conn->close(); // Close connection after processing
         </form>
     </div>
 
-    <?php include 'footer.php';?>
+    <footer class="py-5 mt-5 bg-light" id="kontak"> <!-- Added bg-light -->
+        <div class="container">
+          <div class="row g-4">
+            <div class="col-lg-4">
+              <h5 class="mb-3">MobilKupedia</h5>
+              <p class="">
+                Platform terpercaya untuk jual beli mobil dengan proses yang
+                mudah, aman, dan transparan.
+              </p>
+              <div class="d-flex gap-3 mt-3">
+                <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                  ><i class="fab fa-facebook-f"></i
+                ></a>
+                <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                  ><i class="fab fa-instagram"></i
+                ></a>
+                <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                  ><i class="fab fa-twitter"></i
+                ></a>
+                <a href="#" class="text-white bg-primary p-2 rounded-circle"
+                  ><i class="fab fa-youtube"></i
+                ></a>
+              </div>
+            </div>
+            <div class="col-lg-2 col-md-4 footer-links">
+              <h5 class="mb-3">Layanan</h5>
+              <ul class="list-unstyled">
+                <li class="mb-2"><a href="#">Jual Mobil</a></li>
+                <li class="mb-2"><a href="#">Beli Mobil</a></li>
+                <li class="mb-2"><a href="#">Katalog Mobil</a></li>
+                <li class="mb-2"><a href="#">Verifikasi Mobil</a></li>
+              </ul>
+            </div>
+            <div class="col-lg-2 col-md-4 footer-links">
+              <h5 class="mb-3">Perusahaan</h5>
+              <ul class="list-unstyled">
+                <li class="mb-2"><a href="#">Tentang Kami</a></li>
+                <li class="mb-2"><a href="#">Karir</a></li>
+                <li class="mb-2"><a href="#">Blog</a></li>
+                <li class="mb-2"><a href="#">FAQ</a></li>
+              </ul>
+            </div>
+            <div class="col-lg-4 col-md-4">
+              <h5 class="mb-3">Kontak</h5>
+              <ul class="list-unstyled">
+                <li class="mb-2">
+                  <i class="fas fa-map-marker-alt me-2"></i> Medan
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-phone me-2"></i> +62-813-6789-7890
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-envelope me-2"></i> mobilkupedia@gmail.com
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-clock me-2"></i> Senin - Jumat: 08.00 - 17.00
+                </li>
+              </ul>
+            </div>
+          </div>
+          <hr class="my-4 bg-secondary" />
+          <div class="row">
+            <div class="col-md-6">
+              <p class="mb-0">&copy; 2025 MobilKupedia. Hak Cipta Dilindungi.</p>
+            </div>
+            <div class="col-md-6 text-md-end footer-links">
+              <a href="#" class="me-3">Kebijakan Privasi</a>
+              <a href="#" class="me-3">Syarat & Ketentuan</a>
+              <a href="#">Peta Situs</a>
+            </div>
+          </div>
+        </div>
+      </footer>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

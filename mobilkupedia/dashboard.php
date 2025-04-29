@@ -93,16 +93,9 @@ $conn->close();
                     <li class="nav-item">
                         <a class="nav-link active" href="dashboard.php">Dashboard</a>
                     </li>
-                    <?php // Dynamically show 'Tambah Mobil' for admin or 'Jual Mobil' for others ?>
-                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="admin_add_car.php">Tambah Mobil</a>
-                        </li>
-                    <?php else: // Non-admin logged-in users ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="jual.php">Jual Mobil</a>
-                        </li>
-                    <?php endif; ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="jual.php">Jual Mobil</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="beli.php">Beli Mobil</a>
                     </li>
@@ -115,7 +108,7 @@ $conn->close();
                 </ul>
                 <div class="d-flex">
                     <span class="navbar-text me-3">Selamat datang, <?php echo htmlspecialchars($username); ?>!</span>
-                    <a href="logout.php" class="btn btn-outline-danger">Keluar</a>
+                    <a href="logout.php" class="btn btn-outline-danger">Keluar</a> <!-- Assuming you have a logout script -->
                 </div>
             </div>
         </div>
@@ -213,7 +206,7 @@ $conn->close();
 
     </div>
 
-    <?php include 'footer.php';?>
+    <?php include 'footer.php'; // Include footer -- assuming you have a footer.php ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>

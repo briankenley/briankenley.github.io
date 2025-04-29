@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Jual Mobil</title>
+    <title>Admin: Tambah Mobil Baru</title> <!-- Changed Title -->
     <link rel="stylesheet" href="style.css">
     <link
       rel="stylesheet"
@@ -18,31 +18,26 @@
 session_start();
 include 'db.php';
 
-// Log PHP Integer Max Size
+// --- ADMIN ACCESS CHECK ---
+// Redirect if not logged in or if logged in user is NOT an admin
+if (!isset($_SESSION['userid']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    // Redirect non-admins to dashboard or login page
+    header("Location: " . (isset($_SESSION['userid']) ? "dashboard.php?message=Akses ditolak." : "login.php?message=Silakan login sebagai admin."));
+    exit();
+}
+
+$admin_user_id = $_SESSION['userid']; // Get admin's user ID
+$success_message = '';
+$error_message = '';
+
+// Log PHP Integer Max Size (can be kept for debugging if needed)
 error_log("PHP_INT_MAX: " . PHP_INT_MAX);
 
-// Attempt to relax SQL mode for this session to potentially avoid truncation issues
+// Attempt to relax SQL mode (can be kept if needed)
 if ($conn) {
     $conn->query("SET SESSION sql_mode = ''");
 }
 
-// Redirect if not logged in
-if (!isset($_SESSION['userid'])) {
-    header("Location: login.php?message=Silakan login untuk menjual mobil.");
-    exit();
-}
-
-// --- Redirect Admin Users ---
-// If the logged-in user is an admin, redirect them to the dedicated admin page
-if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-    header("Location: admin_add_car.php?message=Gunakan halaman ini untuk menambah mobil.");
-    exit();
-}
-
-// Proceed for non-admin logged-in users
-$user_id = $_SESSION['userid'];
-$success_message = '';
-$error_message = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate and sanitize inputs (basic validation)
@@ -59,30 +54,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $image_path = ''; // Placeholder for image path
 
     // --- Basic Input Validation ---
-    // Validate price as a non-negative integer string
     if (empty($make) || empty($model) || $year === false || !$is_valid_price_format || $price_int_value === false || $mileage === false || empty($description)) {
          $error_message = "Semua field wajib diisi dengan benar. Pastikan harga (angka bulat tanpa titik/koma) dan jarak tempuh adalah angka numerik yang valid dan tidak negatif.";
     }
-    // --- Image Upload Handling (Placeholder) ---
-    // A real implementation would involve:
-    // 1. Checking $_FILES['image']['error']
-    // 2. Validating file type and size
-    // 3. Generating a unique filename
-    // 4. Moving the uploaded file using move_uploaded_file()
-    // 5. Storing the final path/filename in $image_path
+    // --- Image Upload Handling ---
     elseif (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
          // Basic example: use original name (NOT recommended for production)
-         // $target_dir = "uploads/"; // Make sure this directory exists and is writable
-         // $image_path = $target_dir . basename($_FILES["image"]["name"]);
-         // if (move_uploaded_file($_FILES["image"]["tmp_name"], $image_path)) {
-              // File uploaded successfully
-              $image_path = basename($_FILES["image"]["name"]); // Store just the name for now
-         // } else {
-         //     $error_message = "Maaf, terjadi error saat mengupload gambar.";
-         //     $image_path = ''; // Reset path on error
-         // }
-         // For now, just store the filename as a placeholder if uploaded
+         // A better approach involves unique names and potentially a dedicated uploads folder
          $image_path = $conn->real_escape_string(basename($_FILES["image"]["name"]));
+         // Add actual file move logic here in a real application
+         // move_uploaded_file($_FILES["image"]["tmp_name"], "uploads/" . $image_path);
     } else {
         // Handle cases where image is not uploaded or error occurred
         // $error_message = "Gambar wajib diupload."; // Uncomment if image is strictly required
@@ -98,35 +79,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($stmt) {
             // Log the price integer value just before binding
-            error_log("Attempting to bind price (int value): " . $price_int_value);
+            error_log("Admin adding car - Attempting to bind price (int value): " . $price_int_value);
 
-            // Bind parameters (i: integer) - Binding price as integer for BIGINT
-            $stmt->bind_param("issiiiss", $user_id, $make, $model, $year, $price_int_value, $mileage, $description, $image_path); // Bind the integer value
+            // Bind parameters - Associate car with the logged-in admin's ID
+            $stmt->bind_param("issiiiss", $admin_user_id, $make, $model, $year, $price_int_value, $mileage, $description, $image_path);
 
             if ($stmt->execute()) {
-                $success_message = "Mobil berhasil ditambahkan.";
-                error_log("Car added successfully with price (int value): " . $price_int_value); // Log on success
-                // Optionally clear form or redirect
-                // header("Location: dashboard.php"); exit();
+                $success_message = "Mobil berhasil ditambahkan oleh admin.";
+                error_log("Admin (ID: $admin_user_id) added car successfully with price (int value): " . $price_int_value);
+                // Optionally clear form or redirect to an admin listing page
             } else {
                 $error_message = "Error: Gagal menambahkan mobil. " . $stmt->error;
-                error_log("Error adding car: " . $stmt->error . " | Price int value attempted: " . $price_int_value); // Log on error
+                error_log("Admin (ID: $admin_user_id) error adding car: " . $stmt->error . " | Price int value attempted: " . $price_int_value);
             }
             $stmt->close();
         } else {
             $error_message = "Error: Gagal mempersiapkan statement. " . $conn->error;
-            error_log("Error preparing statement: " . $conn->error); // Log prepare error
+            error_log("Admin add car - Error preparing statement: " . $conn->error);
         }
     }
 }
-$conn->close(); // Close connection after processing
+// Close connection only if it was opened successfully
+if ($conn) {
+    $conn->close();
+}
 ?>
   <body>
+    <!-- Navbar - Adjust links/visibility for admin context if needed -->
     <nav
       class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top"
     >
       <div class="container">
-        <a class="navbar-brand" href="#"
+        <a class="navbar-brand" href="dashboard.php"
           >MobilKu<span style="color: #f39c12">pedia</span></a
         >
         <button
@@ -143,50 +127,40 @@ $conn->close(); // Close connection after processing
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link active" href="mobilkupedia.php">Beranda</a>
-            </li>
+                        <a class="nav-link" href="mobilkupedia.php">Beranda</a>
+                    </li>
             <li class="nav-item">
               <a class="nav-link" href="dashboard.php">Dashboard</a>
             </li>
-            <?php // Dynamically show 'Tambah Mobil' for admin or 'Jual Mobil' for others ?>
-            <?php // Note: Admins are redirected away from this page earlier, but this keeps the nav consistent. ?>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin_add_car.php">Tambah Mobil</a>
-                </li>
-            <?php else: // Non-admin logged-in users ?>
-                <li class="nav-item">
-                    <a class="nav-link active" href="jual.php">Jual Mobil</a> <?php // Add active class ?>
-                </li>
-            <?php endif; ?>
-            <li class="nav-item">
-              <a class="nav-link" href="beli.php">Beli Mobil</a>
+             <li class="nav-item">
+              <a class="nav-link active" href="admin_add_car.php">Tambah Mobil</a> <!-- Active link -->
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="about.php">Tentang Kami</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="kontak.php">Kontak</a>
-            </li>
+                        <a class="nav-link" href="beli.php">Beli Mobil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.php">Tentang Kami</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="kontak.php">Kontak</a>
+                    </li>
           </ul>
-          <div class="d-flex">
-<?php if (!isset($_SESSION['userid'])): ?>
-            <a href="login.php" class="btn btn-outline-primary me-2">Masuk</a>
-            <a href="signup.php" class="btn btn-primary">Daftar</a>
-<?php endif; ?>
+          <div class="d-flex align-items-center">
+             <span class="navbar-text me-3">Admin: <?php echo htmlspecialchars($_SESSION['username']); ?></span>
+             <a href="logout.php" class="btn btn-outline-danger">Keluar</a>
           </div>
         </div>
       </div>
     </nav>
 
-    <header class="text-white text-center py-5" style="background-color: #f39c12;">
-      <h1>Jual Mobil Anda</h1>
-      <p>Masukkan detail mobil yang ingin Anda jual.</p>
+    <header class="text-white text-center py-5" style="background-color: #dc3545;">
+      <h1>Admin: Tambah Mobil Baru</h1>
+      <p>Masukkan detail mobil untuk ditambahkan ke katalog.</p>
     </header>
 
 
-    <div class="container mt-5" id="sell">
-        <h2 class="text-center mb-4">Formulir Jual Mobil</h2>
+    <div class="container mt-5" id="admin-add-car">
+        <h2 class="text-center mb-4">Formulir Tambah Mobil (Admin)</h2>
 
         <?php if (!empty($success_message)): ?>
             <div class="alert alert-success" role="alert">
@@ -199,7 +173,8 @@ $conn->close(); // Close connection after processing
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="jual.php" enctype="multipart/form-data" class="needs-validation" novalidate>
+        <!-- Form remains largely the same as jual.php -->
+        <form method="POST" action="admin_add_car.php" enctype="multipart/form-data" class="needs-validation" novalidate>
             <div class="mb-3">
                 <label for="name" class="form-label">Merk Mobil</label>
                 <input type="text" name="name" class="form-control" id="name" required>
@@ -213,7 +188,7 @@ $conn->close(); // Close connection after processing
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="year" class="form-label">Tahun</label>
-                    <input type="number" name="year" class="form-control" id="year" placeholder="Contoh: 2022" required min="1900" max="<?php echo date('Y') + 1; // Allow next year ?>">
+                    <input type="number" name="year" class="form-control" id="year" placeholder="Contoh: 2022" required min="1900" max="<?php echo date('Y') + 1; ?>">
                     <div class="invalid-feedback">Tahun wajib diisi (antara 1900 - <?php echo date('Y') + 1; ?>).</div>
                 </div>
                  <div class="col-md-6 mb-3">
@@ -235,10 +210,10 @@ $conn->close(); // Close connection after processing
             <div class="mb-3">
                 <label for="image" class="form-label">Gambar Mobil</label>
                 <input type="file" name="image" class="form-control" id="image" accept="image/jpeg, image/png, image/gif">
-                <div class="form-text">Upload gambar mobil (format: JPG, PNG, GIF). Ukuran maks: 2MB (contoh).</div>
+                <div class="form-text">Upload gambar mobil (format: JPG, PNG, GIF).</div>
                 <!-- Add validation feedback if needed -->
             </div>
-            <button type="submit" class="btn btn-primary btn-lg w-100">Tambahkan Mobil</button>
+            <button type="submit" class="btn btn-danger btn-lg w-100">Tambahkan Mobil (Admin)</button> <!-- Changed button color/text -->
         </form>
     </div>
 
@@ -246,5 +221,23 @@ $conn->close(); // Close connection after processing
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Basic JS validation (optional, Bootstrap handles some) -->
+    <script>
+      // Example starter JavaScript for disabling form submissions if there are invalid fields
+      (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms)
+          .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+              if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+              }
+              form.classList.add('was-validated')
+            }, false)
+          })
+      })()
+    </script>
   </body>
 </html>

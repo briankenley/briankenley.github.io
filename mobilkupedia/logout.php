@@ -43,9 +43,9 @@ if (session_destroy()) {
                 <!-- Hide Dashboard/Jual if logged out -->
                 <!-- <li class="nav-item"><a class="nav-link" href="dashboard.php">Dashboard</a></li> -->
                 <!-- <li class="nav-item"><a class="nav-link" href="jual.php">Jual Mobil</a></li> -->
-                <!--<li class="nav-item"><a class="nav-link" href="beli.php">Beli Mobil</a></li>
+                <li class="nav-item"><a class="nav-link" href="beli.php">Beli Mobil</a></li>
                 <li class="nav-item"><a class="nav-link" href="about.php">Tentang Kami</a></li>
-                <li class="nav-item"><a class="nav-link" href="kontak.php">Kontak</a></li>-->
+                <li class="nav-item"><a class="nav-link" href="kontak.php">Kontak</a></li>
             </ul>
             <div class="d-flex">
                 <a href="login.php" class="btn btn-outline-primary me-2">Masuk</a>

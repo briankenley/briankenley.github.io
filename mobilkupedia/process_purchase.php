@@ -10,16 +10,11 @@
 </head>
 <?php
 session_start();
-
-// Check if user is logged in
-if (!isset($_SESSION['userid'])) {
-    // Redirect to login page if not logged in
-    header("Location: login.php?message=Silakan login untuk memproses pembelian.");
-    exit();
+if (isset($_SESSION['userid'])) {
+    $username = $_SESSION['username'];
+} else {
+    $username = "Guest";
 }
-
-// If logged in, get the username
-$username = $_SESSION['username']; 
 ?>
 <body>
         <nav
@@ -48,16 +43,9 @@ $username = $_SESSION['username'];
             <li class="nav-item">
               <a class="nav-link" href="dashboard.php">Dashboard</a>
             </li>
-            <?php // Dynamically show 'Tambah Mobil' for admin or 'Jual Mobil' for others ?>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin_add_car.php">Tambah Mobil</a>
-                </li>
-            <?php else: // Non-admin logged-in users ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="jual.php">Jual Mobil</a>
-                </li>
-            <?php endif; ?>
+            <li class="nav-item">
+              <a class="nav-link" href="jual.php">Jual Mobil</a>
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="beli.php">Beli Mobil</a>
             </li>
@@ -174,10 +162,16 @@ $username = $_SESSION['username'];
             $conn->close();
 
         } else {
-
+            // --- GET Request Handling (Demo Mode) ---
+            // Keep the existing GET request logic for demo purposes if needed, 
+            // but ensure the form it shows points correctly if it should be functional.
+            // For simplicity, let's just show a message that this page processes submissions.
 
             echo "<div class='alert alert-info'>Halaman ini memproses data pembelian dan rating. Silakan lakukan pembelian melalui halaman 'Beli Mobil'.</div>";
+            // Optional: You could still show a non-functional demo rating form if desired.
+            // The multi-line comment below was causing a parse error. It has been removed.
         } 
+        // The redundant 'else' block below has also been removed.
         ?>
     </div>
 
@@ -299,6 +293,5 @@ $username = $_SESSION['username'];
             });
         });
     </script>
-    <?php include 'footer.php';?>
 </body>
 </html>

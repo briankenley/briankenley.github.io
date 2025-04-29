@@ -91,8 +91,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           <p><i class="fa fa-map-marker-alt me-2"></i> Medan</p>
           <p><i class="fa fa-envelope me-2"></i> mobilkupedia@example.com</p>
           <p><i class="fa fa-phone me-2"></i> +62-813-6789-7890</p>
-          WhatsApp Chat Link
-          <p><a href='https://wa.me/6281269791841' target='_blank'>Hubungi kami melalui WhatsApp</a></p>
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3982.006031279587!2d98.6708661!3d3.5860894!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x303131cf9d318f0b%3A0x24276c6d401c3eee!2sUniversitas%20Pelita%20Harapan%20Medan!5e0!3m2!1sid!2sid!4v1741259438033!5m2!1sid!2sid"
             width="90%"
