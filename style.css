@@ -111,3 +111,73 @@ footer {
   border-radius: 10px;
   padding: 20px;
 }
+
+/* Star Rating System */
+.star-rating {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.star-rating input {
+  display: none;
+}
+
+.star-rating label {
+  cursor: pointer;
+  font-size: 30px;
+  color: #ddd;
+  margin-right: 5px;
+}
+
+.star-rating label:before {
+  content: '\f005';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+}
+
+.star-rating input:checked ~ label,
+.star-rating input:hover ~ label {
+  color: #f39c12;
+}
+
+.star-rating-text {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #666;
+}
+
+.rating-form {
+  margin-top: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  border-radius: 10px;
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.rating-form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.rating-form button {
+  margin-top: 15px;
+  background-color: #d35400;
+  border-color: #d35400;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.rating-form button:hover {
+  background-color: #b94700;
+}

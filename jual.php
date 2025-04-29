@@ -18,26 +18,81 @@
 session_start();
 include 'db.php';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validate and sanitize inputs
-    $user_id = $_SESSION['userid'] ?? 0;
-    $make = $conn->real_escape_string($_POST['name']);
-    $model = $conn->real_escape_string($_POST['model']);
-    $year = intval($_POST['year']);
-    $price = floatval($_POST['price']);
-    $mileage = intval($_POST['mileage']);
-    $description = $conn->real_escape_string($_POST['description']);
-    // For image, assuming upload handling will be added later
-    $image = ''; // Placeholder for image path or name
+// Redirect if not logged in
+if (!isset($_SESSION['userid'])) {
+    header("Location: login.php?message=Silakan login untuk menjual mobil.");
+    exit();
+}
 
-    // Insert into database
-    $sql = "INSERT INTO cars (user_id, make, model, year, price, mileage, description, image) VALUES ($user_id, '$make', '$model', $year, $price, $mileage, '$description', '$image')";
-    if ($conn->query($sql) === TRUE) {
-        $success_message = "Listing submitted successfully.";
+$user_id = $_SESSION['userid'];
+$success_message = '';
+$error_message = '';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Validate and sanitize inputs (basic validation)
+    $make = trim($_POST['name'] ?? '');
+    $model = trim($_POST['model'] ?? '');
+    $year = filter_input(INPUT_POST, 'year', FILTER_VALIDATE_INT);
+    $price = filter_input(INPUT_POST, 'price', FILTER_VALIDATE_FLOAT);
+    $mileage = filter_input(INPUT_POST, 'mileage', FILTER_VALIDATE_INT);
+    $description = trim($_POST['description'] ?? '');
+    $image_path = ''; // Placeholder for image path
+
+    // --- Basic Input Validation ---
+    if (empty($make) || empty($model) || $year === false || $price === false || $mileage === false || empty($description)) {
+        $error_message = "Semua field wajib diisi dengan benar.";
+    }
+    // --- Image Upload Handling (Placeholder) ---
+    // A real implementation would involve:
+    // 1. Checking $_FILES['image']['error']
+    // 2. Validating file type and size
+    // 3. Generating a unique filename
+    // 4. Moving the uploaded file using move_uploaded_file()
+    // 5. Storing the final path/filename in $image_path
+    elseif (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
+         // Basic example: use original name (NOT recommended for production)
+         // $target_dir = "uploads/"; // Make sure this directory exists and is writable
+         // $image_path = $target_dir . basename($_FILES["image"]["name"]);
+         // if (move_uploaded_file($_FILES["image"]["tmp_name"], $image_path)) {
+              // File uploaded successfully
+              $image_path = basename($_FILES["image"]["name"]); // Store just the name for now
+         // } else {
+         //     $error_message = "Maaf, terjadi error saat mengupload gambar.";
+         //     $image_path = ''; // Reset path on error
+         // }
+         // For now, just store the filename as a placeholder if uploaded
+         $image_path = $conn->real_escape_string(basename($_FILES["image"]["name"]));
     } else {
-        $error_message = "Error: " . $conn->error;
+        // Handle cases where image is not uploaded or error occurred
+        // $error_message = "Gambar wajib diupload."; // Uncomment if image is strictly required
+        $image_path = ''; // No image uploaded or error
+    }
+
+
+    // Proceed only if no validation errors so far
+    if (empty($error_message)) {
+        // Use prepared statement to prevent SQL injection
+        $sql = "INSERT INTO cars (user_id, make, model, year, price, mileage, description, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+
+        if ($stmt) {
+            // Bind parameters (i: integer, s: string, d: double)
+            $stmt->bind_param("issidiss", $user_id, $make, $model, $year, $price, $mileage, $description, $image_path);
+
+            if ($stmt->execute()) {
+                $success_message = "Mobil berhasil ditambahkan.";
+                // Optionally clear form or redirect
+                // header("Location: dashboard.php"); exit();
+            } else {
+                $error_message = "Error: Gagal menambahkan mobil. " . $stmt->error;
+            }
+            $stmt->close();
+        } else {
+            $error_message = "Error: Gagal mempersiapkan statement. " . $conn->error;
+        }
     }
 }
+$conn->close(); // Close connection after processing
 ?>
   <body>
     <nav
@@ -91,49 +146,68 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <header class="text-white text-center py-5" style="background-color: #f39c12;">
       <h1>Jual Mobil Anda</h1>
-      <p>Penawaran terbaik untuk mobil baru dan bekas</p>
+      <p>Masukkan detail mobil yang ingin Anda jual.</p>
     </header>
 
 
-    
     <div class="container mt-5" id="sell">
-        <h2 class="text-center">Jual Mobil Anda</h2>
-        <form method="POST" action="jual.php" enctype="multipart/form-data">
+        <h2 class="text-center mb-4">Formulir Jual Mobil</h2>
+
+        <?php if (!empty($success_message)): ?>
+            <div class="alert alert-success" role="alert">
+                <?php echo $success_message; ?>
+            </div>
+        <?php endif; ?>
+        <?php if (!empty($error_message)): ?>
+            <div class="alert alert-danger" role="alert">
+                <?php echo $error_message; ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="jual.php" enctype="multipart/form-data" class="needs-validation" novalidate>
             <div class="mb-3">
-                <label for="make" class="form-label">Nama Mobil</label>
+                <label for="name" class="form-label">Merk Mobil</label>
                 <input type="text" name="name" class="form-control" id="name" required>
+                <div class="invalid-feedback">Merk mobil wajib diisi.</div>
             </div>
             <div class="mb-3">
                 <label for="model" class="form-label">Model Mobil</label>
                 <input type="text" name="model" class="form-control" id="model" required>
+                 <div class="invalid-feedback">Model mobil wajib diisi.</div>
             </div>
-            <div class="mb-3">
-                <label for="year" class="form-label">Tahun</label>
-                <input type="number" name="year" class="form-control" id="year" required>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="year" class="form-label">Tahun</label>
+                    <input type="number" name="year" class="form-control" id="year" placeholder="Contoh: 2022" required min="1900" max="<?php echo date('Y') + 1; // Allow next year ?>">
+                    <div class="invalid-feedback">Tahun wajib diisi (antara 1900 - <?php echo date('Y') + 1; ?>).</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="price" class="form-label">Harga (Rp)</label>
+                    <input type="number" name="price" class="form-control" id="price" placeholder="Contoh: 250000000" required min="0">
+                     <div class="invalid-feedback">Harga wajib diisi (angka positif).</div>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="price" class="form-label">Harga</label>
-                <input type="number" name="price" class="form-control" id="price" required>
-            </div>
-            <div class="mb-3">
+             <div class="mb-3">
                 <label for="mileage" class="form-label">Jarak Tempuh (km)</label>
-                <input type="number" name="mileage" class="form-control" id="mileage" required>
+                <input type="number" name="mileage" class="form-control" id="mileage" placeholder="Contoh: 15000" required min="0">
+                 <div class="invalid-feedback">Jarak tempuh wajib diisi (angka positif).</div>
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">Deskripsi</label>
-                <textarea name="description" class="form-control" id="description" rows="4" required></textarea>
+                <textarea name="description" class="form-control" id="description" rows="4" placeholder="Jelaskan kondisi mobil, fitur unggulan, dll." required></textarea>
+                 <div class="invalid-feedback">Deskripsi wajib diisi.</div>
             </div>
             <div class="mb-3">
-                <label for="image" class="form-label">Upload Car Image</label>
-                <input type="file" name="image" class="form-control" id="image" required>
+                <label for="image" class="form-label">Gambar Mobil</label>
+                <input type="file" name="image" class="form-control" id="image" accept="image/jpeg, image/png, image/gif">
+                <div class="form-text">Upload gambar mobil (format: JPG, PNG, GIF). Ukuran maks: 2MB (contoh).</div>
+                <!-- Add validation feedback if needed -->
             </div>
-            <button type="submit" class="btn btn-primary">Submit Listing</button>
+            <button type="submit" class="btn btn-primary btn-lg w-100">Tambahkan Mobil</button>
         </form>
     </div>
 
-      </form>
-    </div>
-    <footer class="py-5 mt-5" id="kontak">
+    <footer class="py-5 mt-5 bg-light" id="kontak"> <!-- Added bg-light -->
         <div class="container">
           <div class="row g-4">
             <div class="col-lg-4">

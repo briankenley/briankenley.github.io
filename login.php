@@ -11,19 +11,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($username) || empty($password)) {
         $error = "Username and password are required.";
     } else {
-        $stmt = $conn->prepare("SELECT id, password FROM users WHERE username = ?");
+        // Fetch id, password, and role
+        $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $stmt->store_result();
 
         if ($stmt->num_rows == 1) {
-            $stmt->bind_result($id, $hashed_password);
+            // Bind id, hashed_password, and role
+            $stmt->bind_result($id, $hashed_password, $role);
             $stmt->fetch();
 
             if (password_verify($password, $hashed_password)) {
+                // Store user info in session
                 $_SESSION["userid"] = $id;
                 $_SESSION["username"] = $username;
-                header("Location: dashboard.php");
+                $_SESSION["role"] = $role; // Store the role
+                header("Location: dashboard.php"); // Redirect to dashboard
                 exit();
             } else {
                 $error = "Invalid username or password.";

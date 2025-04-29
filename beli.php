@@ -16,6 +16,22 @@
   />
 <?php
 session_start();
+include 'db.php'; // Include database connection
+
+// --- Search Logic ---
+$search_keyword = isset($_GET['keyword']) ? trim(mysqli_real_escape_string($conn, $_GET['keyword'])) : '';
+
+$sql = "SELECT id, make, model, year, price, mileage, image, description FROM cars"; // Added description
+
+// Build WHERE clause for search
+if (!empty($search_keyword)) {
+    $sql .= " WHERE make LIKE '%$search_keyword%' OR model LIKE '%$search_keyword%' OR description LIKE '%$search_keyword%'";
+}
+
+$sql .= " ORDER BY created_at DESC"; // Default sorting
+
+$result = $conn->query($sql);
+
 ?>
   <body>
     <nav
@@ -69,149 +85,75 @@ session_start();
 
     <section class="py-5 bg-light" id="beli">
       <div class="container">
-        <h2 class="section-title">Mobil Pilihan</h2>
-
-        <div class="car-filter-section mb-4">
-          <div class="row g-2">
-            <div class="col-md-3">
-              <select class="form-select">
-                <option selected>Merek Mobil</option>
-                <option>Toyota</option>
-                <option>Honda</option>
-                <option>Suzuki</option>
-                <option>Daihatsu</option>
-                <option>Mitsubishi</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <select class="form-select">
-                <option selected>Model</option>
-                <option>Avanza</option>
-                <option>Xenia</option>
-                <option>Jazz</option>
-                <option>Brio</option>
-                <option>Innova</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <select class="form-select">
-                <option selected>Tahun</option>
-                <option>2023</option>
-                <option>2022</option>
-                <option>2021</option>
-                <option>2020</option>
-                <option>2019</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <select class="form-select">
-                <option selected>Harga</option>
-                <option>< Rp 100 Juta</option>
-                <option>Rp 100-200 Juta</option>
-                <option>Rp 200-300 Juta</option>
-                <option>> Rp 300 Juta</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <button class="btn btn-primary w-100">Cari Mobil</button>
-            </div>
-          </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title mb-0">Cari Mobil Impian Anda</h2>
+            <?php // Add Car button for Admin
+            if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                <a href="jual.php" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i> Tambah Mobil
+                </a>
+            <?php endif; ?>
         </div>
 
+        <!-- Search Form -->
+        <form action="beli.php" method="GET" class="search-form mb-4">
+          <div class="row g-2 justify-content-center">
+            <div class="col-md-6">
+              <label for="searchInput" class="form-label visually-hidden">Kata Kunci Pencarian</label>
+              <input type="text" class="form-control form-control-lg" id="searchInput" name="keyword" placeholder="Cari mobil (cth: Avanza, X- Trail, Jazz)" value="<?php echo htmlspecialchars($search_keyword); ?>">
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn btn-primary btn-lg w-100">Cari Mobil</button>
+            </div>
+          </div>
+        </form>
+        <!-- End Search Form -->
+
+        <!-- Car Listing -->
         <div class="row g-4">
-          <div class="col-md-4">
-            <div class="card car-card border-0 shadow-sm">
-              <img
-                src="avanza.jpg"
-                style="height: 250px"
-                class="card-img-top"
-                alt="Toyota Avanza"
-              />
-              <div class="card-body">
-                <div
-                  class="d-flex justify-content-between align-items-center mb-2"
-                >
-                  <h5 class="card-title mb-0">Toyota Avanza</h5>
-                  <span class="badge badge-custom">2021</span>
-                </div>
-                <p class="text-primary fw-bold">Rp 185.000.000</p>
-                <div class="d-flex mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-tachometer-alt text-muted me-1"></i> 15.000
-                    km
-                  </div>
-                  <div>
-                    <i class="fas fa-gas-pump text-muted me-1"></i> Bensin
-                  </div>
-                </div>
-                <a href="#" class="btn btn-primary w-100">Lihat Detail</a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card car-card border-0 shadow-sm">
-              <img
-                src="jazz.jpg"
-                style="height: 250px"
-                class="card-img-top"
-                alt="Honda Jazz"
-              />
-              <div class="card-body">
-                <div
-                  class="d-flex justify-content-between align-items-center mb-2"
-                >
-                  <h5 class="card-title mb-0">Honda Jazz RS</h5>
-                  <span class="badge badge-custom">2020</span>
-                </div>
-                <p class="text-primary fw-bold">Rp 225.000.000</p>
-                <div class="d-flex mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-tachometer-alt text-muted me-1"></i> 20.500
-                    km
-                  </div>
-                  <div>
-                    <i class="fas fa-gas-pump text-muted me-1"></i> Bensin
-                  </div>
-                </div>
-                <a href="#" class="btn btn-primary w-100">Lihat Detail</a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card car-card border-0 shadow-sm">
-              <img
-                src="xpander.png"
-                style="height: 250px"
-                class="card-img-top"
-                alt="Mitsubishi Xpander"
-              />
-              <div class="card-body">
-                <div
-                  class="d-flex justify-content-between align-items-center mb-2"
-                >
-                  <h5 class="card-title mb-0">Mitsubishi Xpander</h5>
-                  <span class="badge badge-custom">2022</span>
-                </div>
-                <p class="text-primary fw-bold">Rp 260.000.000</p>
-                <div class="d-flex mb-3">
-                  <div class="me-3">
-                    <i class="fas fa-tachometer-alt text-muted me-1"></i> 8.700
-                    km
-                  </div>
-                  <div>
-                    <i class="fas fa-gas-pump text-muted me-1"></i> Bensin
-                  </div>
-                </div>
-                <a href="#" class="btn btn-primary w-100">Lihat Detail</a>
-              </div>
-            </div>
-          </div>
-        </div>
+          <?php if ($result && $result->num_rows > 0): ?>
+            <?php while($car = $result->fetch_assoc()): ?>
+              <div class="col-md-4">
+                <div class="card car-card border-0 shadow-sm h-100">
+                  <img
+                    src="<?php echo !empty($car['image']) ? htmlspecialchars($car['image']) : 'placeholder.png'; // Use placeholder if no image ?>"
+                    style="height: 250px; object-fit: cover;"
+                    class="card-img-top"
+                    alt="<?php echo htmlspecialchars($car['make']) . ' ' . htmlspecialchars($car['model']); ?>"
+                  />
+                  <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h5 class="card-title mb-0"><?php echo htmlspecialchars($car['make']) . ' ' . htmlspecialchars($car['model']); ?></h5>
+                      <span class="badge badge-custom"><?php echo htmlspecialchars($car['year']); ?></span>
+                    </div>
+                    <p class="text-primary fw-bold">Rp <?php echo number_format($car['price'], 0, ',', '.'); ?></p>
+                    <div class="d-flex mb-3">
+                      <div class="me-3">
+                        <i class="fas fa-tachometer-alt text-muted me-1"></i>
+                        <?php echo $car['mileage'] ? number_format($car['mileage'], 0, ',', '.') . ' km' : 'N/A'; ?>
+                      </div>
 
-        <div class="text-center mt-4">
-          <a href="#" class="btn btn-outline-primary px-4"
-            >Lihat Lebih Banyak</a
-          >
+                    </div>
+                    <a href="detail.php?id=<?php echo $car['id']; ?>" class="btn btn-primary w-100 mt-auto">Lihat Detail</a>
+                  </div>
+                </div>
+              </div>
+            <?php endwhile; ?>
+          <?php else: ?>
+            <div class="col-12">
+              <div class="alert alert-warning text-center" role="alert">
+                Tidak ada mobil yang ditemukan dengan kata kunci "<?php echo htmlspecialchars($search_keyword); ?>". Silakan coba kata kunci lain.
+              </div>
+            </div>
+          <?php endif; ?>
+          <?php $conn->close(); // Close connection after displaying results ?>
+        </div>
+        <!-- End Car Listing -->
+
+
+
+<div class="text-center mt-4">
+          <a href="#" class="btn btn-outline-primary px-4">Lihat Lebih Banyak</a>
         </div>
       </div>
     </section>
