@@ -18,50 +18,33 @@
 session_start();
 include 'db.php'; // Include database connection
 
-// Check if user is logged in
-if (!isset($_SESSION['userid']) || !isset($_SESSION['username'])) {
-    // Redirect to login page if not logged in
-    header("Location: login.php?message=Silakan login untuk mengakses dashboard.");
+// Basic check if user is logged in
+if (!isset($_SESSION['userid'])) {
+    header("Location: login.php"); // Simple redirect
     exit();
 }
 
 $user_id = $_SESSION['userid'];
-$username = $_SESSION['username'];
+$username = $_SESSION['username']; // Assume username is set if userid is
 
-// Fetch cars listed by the user
+// Fetch cars listed by the user (UNSAFE query)
 $cars_listed = [];
-$stmt_listed = $conn->prepare("SELECT id, make, model, year, price, mileage, image FROM cars WHERE user_id = ? ORDER BY created_at DESC");
-if ($stmt_listed) {
-    $stmt_listed->bind_param("i", $user_id);
-    $stmt_listed->execute();
-    $result_listed = $stmt_listed->get_result();
+$sql_listed = "SELECT id, make, model, year, price, mileage, image FROM cars WHERE user_id = '$user_id' ORDER BY created_at DESC";
+$result_listed = $conn->query($sql_listed);
+if ($result_listed && $result_listed->num_rows > 0) {
     while ($row = $result_listed->fetch_assoc()) {
         $cars_listed[] = $row;
     }
-    $stmt_listed->close();
-} else {
-    // Handle error - e.g., log it or display a generic message
-    error_log("Error preparing statement for listed cars: " . $conn->error);
 }
 
-
-// Fetch cars purchased by the user
+// Fetch cars purchased by the user (UNSAFE query)
 $cars_purchased = [];
-// Note: The 'purchases' table stores car name as a string.
-// We might need more details if we want to display images etc. like the listed cars.
-// For now, we'll display the information available in the 'purchases' table.
-$stmt_purchased = $conn->prepare("SELECT id, car, name, address, payment_method, rating, comment FROM purchases WHERE username = ? ORDER BY id DESC"); // Assuming purchase timestamp isn't stored
-if ($stmt_purchased) {
-    $stmt_purchased->bind_param("s", $username);
-    $stmt_purchased->execute();
-    $result_purchased = $stmt_purchased->get_result();
+$sql_purchased = "SELECT id, car, name, address, payment_method, rating, comment FROM purchases WHERE username = '$username' ORDER BY id DESC";
+$result_purchased = $conn->query($sql_purchased);
+if ($result_purchased && $result_purchased->num_rows > 0) {
     while ($row = $result_purchased->fetch_assoc()) {
         $cars_purchased[] = $row;
     }
-    $stmt_purchased->close();
-} else {
-     // Handle error
-     error_log("Error preparing statement for purchased cars: " . $conn->error);
 }
 
 $conn->close();
@@ -114,7 +97,7 @@ $conn->close();
                     </li>
                 </ul>
                 <div class="d-flex">
-                    <span class="navbar-text me-3">Selamat datang, <?php echo htmlspecialchars($username); ?>!</span>
+                    <span class="navbar-text me-3">Selamat datang, <?php echo $username; ?>!</span>
                     <a href="logout.php" class="btn btn-outline-danger">Keluar</a>
                 </div>
             </div>
@@ -123,6 +106,20 @@ $conn->close();
 
     <div class="container py-5">
         <h1 class="mb-4">Dashboard</h1>
+
+        <?php
+        // Display messages from session (e.g., after delete)
+        if (isset($_SESSION['dashboard_message'])) {
+            $message_type = isset($_SESSION['dashboard_message_type']) ? $_SESSION['dashboard_message_type'] : 'info'; // Default to info
+            echo '<div class="alert alert-' . htmlspecialchars($message_type) . ' alert-dismissible fade show" role="alert">';
+            echo htmlspecialchars($_SESSION['dashboard_message']);
+            echo '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            echo '</div>';
+            // Unset the session variables so the message doesn't reappear on refresh
+            unset($_SESSION['dashboard_message']);
+            unset($_SESSION['dashboard_message_type']);
+        }
+        ?>
 
         <!-- Section for Cars Listed for Sale -->
         <section id="mobil-dijual" class="mb-5">
@@ -133,15 +130,15 @@ $conn->close();
                         <div class="col-md-4">
                             <div class="card car-card border-0 shadow-sm h-100">
                                 <img
-                                    src="<?php echo !empty($car['image']) ? htmlspecialchars($car['image']) : 'placeholder.png'; ?>"
+                                    src="<?php echo !empty($car['image']) ? $car['image'] : 'placeholder.png'; ?>"
                                     style="height: 200px; object-fit: cover;"
                                     class="card-img-top"
-                                    alt="<?php echo htmlspecialchars($car['make']) . ' ' . htmlspecialchars($car['model']); ?>"
+                                    alt="<?php echo $car['make'] . ' ' . $car['model']; ?>"
                                 />
                                 <div class="card-body d-flex flex-column">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5 class="card-title mb-0"><?php echo htmlspecialchars($car['make']) . ' ' . htmlspecialchars($car['model']); ?></h5>
-                                        <span class="badge badge-custom"><?php echo htmlspecialchars($car['year']); ?></span>
+                                        <h5 class="card-title mb-0"><?php echo $car['make'] . ' ' . $car['model']; ?></h5>
+                                        <span class="badge badge-custom"><?php echo $car['year']; ?></span>
                                     </div>
                                     <p class="text-primary fw-bold">Rp <?php echo number_format($car['price'], 0, ',', '.'); ?></p>
                                     <div class="d-flex mb-3">
@@ -152,8 +149,8 @@ $conn->close();
                                     </div>
                                     <!-- Add Edit/Delete buttons if needed -->
                                     <a href="detail.php?id=<?php echo $car['id']; ?>" class="btn btn-secondary w-100 mt-auto btn-sm">Lihat Detail</a>
-                                    <!-- Example: <a href="edit_car.php?id=<?php echo $car['id']; ?>" class="btn btn-warning btn-sm mt-2">Edit</a> -->
-                                    <!-- Example: <a href="delete_car.php?id=<?php echo $car['id']; ?>" class="btn btn-danger btn-sm mt-2" onclick="return confirm('Yakin ingin menghapus mobil ini?');">Hapus</a> -->
+                                    <a href="edit_car.php?id=<?php echo $car['id']; ?>" class="btn btn-warning btn-sm mt-2">Edit</a>
+                                    <a href="delete_car.php?id=<?php echo $car['id']; ?>" class="btn btn-danger btn-sm mt-2" onclick="return confirm('Yakin ingin menghapus mobil ini?');">Hapus</a>
                                 </div>
                             </div>
                         </div>
@@ -178,14 +175,14 @@ $conn->close();
                     <?php foreach ($cars_purchased as $purchase): ?>
                         <div class="list-group-item list-group-item-action flex-column align-items-start mb-3 shadow-sm">
                             <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1"><?php echo htmlspecialchars($purchase['car']); ?></h5>
+                                <h5 class="mb-1"><?php echo $purchase['car']; ?></h5>
                                 <!-- <small>[Purchase Date if available]</small> -->
                             </div>
-                            <p class="mb-1"><strong>Penerima:</strong> <?php echo htmlspecialchars($purchase['name']); ?></p>
-                            <p class="mb-1"><strong>Alamat:</strong> <?php echo htmlspecialchars($purchase['address']); ?></p>
-                            <p class="mb-1"><strong>Metode Pembayaran:</strong> <?php echo htmlspecialchars(ucwords(str_replace('_', ' ', $purchase['payment_method']))); ?></p>
+                            <p class="mb-1"><strong>Penerima:</strong> <?php echo $purchase['name']; ?></p>
+                            <p class="mb-1"><strong>Alamat:</strong> <?php echo $purchase['address']; ?></p>
+                            <p class="mb-1"><strong>Metode Pembayaran:</strong> <?php echo ucwords(str_replace('_', ' ', $purchase['payment_method'])); ?></p>
                             <?php if (!empty($purchase['comment'])): ?>
-                                <p class="mb-1 mt-2"><strong>Komentar Anda:</strong> <?php echo nl2br(htmlspecialchars($purchase['comment'])); ?></p>
+                                <p class="mb-1 mt-2"><strong>Komentar Anda:</strong> <?php echo nl2br($purchase['comment']); ?></p>
                             <?php endif; ?>
                              <?php if (!empty($purchase['rating'])): ?>
                                 <p class="mb-1 mt-2"><strong>Rating Anda:</strong>

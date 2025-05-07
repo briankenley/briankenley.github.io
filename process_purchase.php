@@ -11,15 +11,9 @@
 <?php
 session_start();
 
-// Check if user is logged in
-if (!isset($_SESSION['userid'])) {
-    // Redirect to login page if not logged in
-    header("Location: login.php?message=Silakan login untuk memproses pembelian.");
-    exit();
-}
-
-// If logged in, get the username
-$username = $_SESSION['username']; 
+// Simplified: Assume session started if needed, no login check
+// Assume username is available if needed, but remove explicit check
+$username = $_SESSION['username'] ?? 'guest'; // Provide a default if not set, though not strictly needed for simplified logic
 ?>
 <body>
         <nav
@@ -104,12 +98,10 @@ $username = $_SESSION['username'];
                     // Payment Instructions
                     echo "<h2>Instruksi Pembayaran</h2>";
                     if ($payment_method == "credit_card") {
-                        echo "<p>Silakan lakukan pembayaran melalui kartu kredit dengan nomor xxxx-xxxx-xxxx-1234.</p>";
+                        echo "<p>Untuk pembelian melalui kartu kredit, silahkan hubungi WhatsApp kami melalui link di bawah ini.</p>";
                     } elseif ($payment_method == "bank_transfer") {
-                        echo "<p>Silakan transfer ke rekening BCA 1234567890 atas nama MobilKupedia.</p>";
-                    } elseif ($payment_method == "paypal") {
-                        echo "<p>Anda akan diarahkan ke PayPal untuk menyelesaikan pembayaran.</p>";
-                    }
+                        echo "<p>Silakan transfer ke rekening BCA 1234567890 atas nama MobilKupedia dan kirim bukti transfer ke WhatsApp kami melalui link di bawah ini.</p>";
+                    } 
 
                     // WhatsApp Chat Link
                     echo "<p><a href='https://wa.me/6281269791841' target='_blank'>Hubungi kami melalui WhatsApp</a></p>";
@@ -117,11 +109,11 @@ $username = $_SESSION['username'];
                     // Show the rating form, passing the purchase_id
                     echo "<div class='rating-form'>";
                     echo "<h4>Berikan rating untuk pengalaman pembelian Anda:</h4>";
-                    // The form now submits the rating and comment along with the purchase_id
-                    echo "<form action='process_purchase.php?car=" . urlencode($car) . "' method='POST'>"; 
+                    // Simplified form action (removed urlencode)
+                    echo "<form action='process_purchase.php?car=" . $car . "' method='POST'>";
                     echo "<input type='hidden' name='purchase_id' value='" . $purchase_id . "'>"; // Hidden field for purchase ID
 
-                    // Star Rating UI
+                    // Simplified Star Rating UI (removed JS interaction logic later)
                     echo "<div class='star-rating'>";
                     echo "<input type='radio' id='star5' name='rating' value='5' required /><label for='star5' title='5 stars'></label>"; // Added required attribute
                     echo "<input type='radio' id='star4' name='rating' value='4' /><label for='star4' title='4 stars'></label>";
@@ -144,23 +136,21 @@ $username = $_SESSION['username'];
             // Scenario 2: Rating Submission (check for rating and purchase_id)
             elseif (isset($_POST["rating"]) && isset($_POST["purchase_id"])) {
                 $rating = $_POST["rating"];
-                $comment = isset($_POST["comment"]) ? $_POST["comment"] : ""; // Comment is optional
+                $comment = $_POST["comment"] ?? ""; // Comment is optional
                 $purchase_id = $_POST["purchase_id"];
-
-                // Update the existing purchase record with the rating and comment
-                $sql = "UPDATE purchases SET rating = '$rating', comment = '$comment' WHERE id = '$purchase_id' AND username = '$username'"; // Added username check for security
+                $sql = "UPDATE purchases SET rating = '$rating', comment = '$comment' WHERE id = '$purchase_id'";
 
                 if ($conn->query($sql) === TRUE) {
                     if ($conn->affected_rows > 0) {
                          echo "<h2>Terima Kasih!</h2>";
                          echo "<p>Rating dan komentar Anda telah berhasil disimpan.</p>";
-                         echo "<p>Rating Anda: " . htmlspecialchars($rating) . " bintang</p>";
+                         echo "<p>Rating Anda: " . $rating . " bintang</p>";
                          if (!empty($comment)) {
-                             echo "<p>Komentar Anda: " . htmlspecialchars($comment) . "</p>";
+                             echo "<p>Komentar Anda: " . $comment . "</p>";
                          }
                          echo "<p><a href='beli.php' class='btn btn-secondary'>Kembali ke Daftar Mobil</a></p>";
                     } else {
-                         echo "<div class='alert alert-warning'>Tidak dapat menemukan atau memperbarui data pembelian Anda. Mungkin sudah dinilai sebelumnya atau ID tidak cocok.</div>";
+                         echo "<div class='alert alert-warning'>Tidak dapat menemukan atau memperbarui data pembelian Anda.</div>";
                     }
                 } else {
                     echo "Error updating rating: " . $sql . "<br>" . $conn->error;
@@ -256,49 +246,6 @@ $username = $_SESSION['username'];
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha-1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Star Rating JavaScript -->
-    <script>
-        // Get all star rating inputs
-        const ratingInputs = document.querySelectorAll('.star-rating input');
-        const ratingText = document.getElementById('ratingText');
-        
-        // Rating text descriptions
-        const ratingDescriptions = {
-            1: 'Sangat Buruk',
-            2: 'Buruk',
-            3: 'Cukup',
-            4: 'Baik',
-            5: 'Sangat Baik'
-        };
-        
-        // Add event listeners to each star
-        ratingInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                const rating = this.value;
-                ratingText.textContent = `Rating Anda: ${rating} - ${ratingDescriptions[rating]}`;
-            });
-            
-            // Also add mouseover/mouseout effects for better UX
-            const label = document.querySelector(`label[for="${input.id}"]`);
-            
-            label.addEventListener('mouseover', function() {
-                const rating = input.value;
-                ratingText.textContent = `${rating} - ${ratingDescriptions[rating]}`;
-            });
-            
-            label.addEventListener('mouseout', function() {
-                // If a rating is already selected, show that, otherwise show default text
-                const selectedRating = document.querySelector('.star-rating input:checked');
-                if (selectedRating) {
-                    const rating = selectedRating.value;
-                    ratingText.textContent = `Rating Anda: ${rating} - ${ratingDescriptions[rating]}`;
-                } else {
-                    ratingText.textContent = 'Klik bintang untuk memberikan rating';
-                }
-            });
-        });
-    </script>
-    <?php include 'footer.php';?>
+    <?php?>
 </body>
 </html>

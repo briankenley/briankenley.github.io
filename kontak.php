@@ -16,22 +16,8 @@
   />
 <?php
 session_start();
-include 'db.php';
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validate and sanitize inputs
-    $name = $conn->real_escape_string($_POST['name']);
-    $email = $conn->real_escape_string($_POST['email']);
-    $message = $conn->real_escape_string($_POST['message']);
-
-    // Insert into database
-    $sql = "INSERT INTO contacts (name, email, message) VALUES ('$name', '$email', '$message')";
-    if ($conn->query($sql) === TRUE) {
-        $success_message = "Message sent successfully.";
-    } else {
-        $error_message = "Error: " . $conn->error;
-    }
-}
+// Removed include 'db.php'; as DB interaction is removed
+// Removed the entire POST processing block for simplification
 ?>
   <body>
     <nav
@@ -106,14 +92,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <div class="col-md-5">
           <h4>Send Us a Message</h4>
+          <!-- Form action remains, but no server-side processing will happen -->
           <form method="POST" action="kontak.php">
             <div class="mb-3">
               <label for="name" class="form-label">Name</label>
-              <input type="text" name="name" class="form-control" id="name" required />
+              <input type="text" name="name" class="form-control" id="name" />
             </div>
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
-              <input type="email" name="email" class="form-control" id="email" required />
+              <input type="email" name="email" class="form-control" id="email" />
             </div>
             <div class="mb-3">
               <label for="message" class="form-label">Message</label>
@@ -122,9 +109,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 class="form-control"
                 id="message"
                 rows="4"
-                required
               ></textarea>
             </div>
+            <!-- Button remains, but won't save data -->
             <button type="submit" class="btn btn-primary">Send Message</button>
           </form>
         </div>

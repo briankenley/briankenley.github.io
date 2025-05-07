@@ -18,39 +18,31 @@
 session_start();
 include 'db.php'; // Include database connection
 
-// Check if user is logged in
-if (!isset($_SESSION['userid'])) {
-    // Redirect to login page if not logged in
-    header("Location: login.php?message=Silakan login untuk melihat detail mobil.");
-    exit();
-}
+// Simplified: Assume session started if needed, no login check
 
-// Get Car ID from URL and validate
-$car_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+// Get Car ID from URL (UNSAFE)
+$car_id = $_GET['id'] ?? 0;
 $car_details = null;
 $error_message = '';
 
 if ($car_id > 0) {
-    // Prepare SQL statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT make, model, year, price, mileage, description, image FROM cars WHERE id = ?");
-    $stmt->bind_param("i", $car_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Direct SQL query (UNSAFE)
+    $sql = "SELECT make, model, year, price, mileage, description, image FROM cars WHERE id = '$car_id'";
+    $result = $conn->query($sql);
 
-    if ($result->num_rows === 1) {
+    if ($result && $result->num_rows === 1) {
         $car_details = $result->fetch_assoc();
     } else {
         $error_message = "Mobil tidak ditemukan.";
     }
-    $stmt->close();
 } else {
     $error_message = "ID mobil tidak valid.";
 }
-$conn->close(); // Close connection after fetching data
 
-// Construct car name for process_purchase.php compatibility
-$car_name_for_purchase = $car_details ? htmlspecialchars($car_details['make'] . ' ' . $car_details['model']) : 'Unknown Car';
+// Construct car name (simplified)
+$car_name_for_purchase = $car_details ? ($car_details['make'] . ' ' . $car_details['model']) : 'Unknown Car';
 
+// Close connection later in the script
 ?>
     <body>
     <nav
@@ -111,25 +103,25 @@ $car_name_for_purchase = $car_details ? htmlspecialchars($car_details['make'] . 
 
     <div class="container py-5">
         <?php if ($car_details): ?>
-            <h1 class="mb-4">Detail Mobil: <?php echo htmlspecialchars($car_details['make']) . ' ' . htmlspecialchars($car_details['model']); ?></h1>
+            <h1 class="mb-4">Detail Mobil: <?php echo $car_details['make'] . ' ' . $car_details['model']; ?></h1>
 
             <div class="row">
                 <div class="col-md-7 mb-4">
-                    <img src="<?php echo !empty($car_details['image']) ? htmlspecialchars($car_details['image']) : 'placeholder.png'; ?>" class="img-fluid rounded shadow-sm" alt="<?php echo $car_name_for_purchase; ?>" style="max-height: 450px; width: 100%; object-fit: cover;">
+                    <img src="<?php echo !empty($car_details['image']) ? $car_details['image'] : 'placeholder.png'; ?>" class="img-fluid rounded shadow-sm" alt="<?php echo $car_name_for_purchase; ?>" style="max-height: 450px; width: 100%; object-fit: cover;">
                 </div>
                 <div class="col-md-5">
-                    <h3><?php echo htmlspecialchars($car_details['make']) . ' ' . htmlspecialchars($car_details['model']); ?> <span class="badge bg-secondary"><?php echo htmlspecialchars($car_details['year']); ?></span></h3>
+                    <h3><?php echo $car_details['make'] . ' ' . $car_details['model']; ?> <span class="badge bg-secondary"><?php echo $car_details['year']; ?></span></h3>
                     <h4 class="text-primary fw-bold my-3">Rp <?php echo number_format($car_details['price'], 0, ',', '.'); ?></h4>
 
                     <p><strong>Kilometer:</strong> <?php echo $car_details['mileage'] ? number_format($car_details['mileage'], 0, ',', '.') . ' km' : 'N/A'; ?></p>
 
                     <p><strong>Deskripsi:</strong></p>
-                    <p><?php echo !empty($car_details['description']) ? nl2br(htmlspecialchars($car_details['description'])) : '<em>Tidak ada deskripsi tambahan.</em>'; ?></p>
+                    <p><?php echo !empty($car_details['description']) ? nl2br($car_details['description']) : '<em>Tidak ada deskripsi tambahan.</em>'; ?></p>
 
                     <hr>
 
                     <h4 class="mt-4">Formulir Pembelian</h4>
-                    <form action="process_purchase.php?car=<?php echo urlencode($car_name_for_purchase); ?>" method="POST">
+                    <form action="process_purchase.php?car=<?php echo $car_name_for_purchase; ?>" method="POST">
                         <!-- Optional: Hidden field if process_purchase needs the ID later -->
                         <!-- <input type="hidden" name="car_id" value="<?php echo $car_id; ?>"> -->
                         <div class="mb-3">
@@ -146,7 +138,6 @@ $car_name_for_purchase = $car_details ? htmlspecialchars($car_details['make'] . 
                                 <option value="" disabled selected>Pilih Metode</option>
                                 <option value="credit_card">Kartu Kredit</option>
                                 <option value="bank_transfer">Transfer Bank</option>
-                                <option value="paypal">PayPal</option>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-success w-100 btn-lg">Beli Sekarang</button>
@@ -164,6 +155,7 @@ $car_name_for_purchase = $car_details ? htmlspecialchars($car_details['make'] . 
         <?php endif; ?>
     </div>
 
+    <?php if ($conn) $conn->close(); // Close connection here ?>
     <?php include 'footer.php';?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS cars (
     make VARCHAR(100) NOT NULL,
     model VARCHAR(100) NOT NULL,
     year YEAR NOT NULL,
-    price BIGINT NOT NULL, -- Changed from DECIMAL to BIGINT
+    price DECIMAL NOT NULL, 
     mileage INT,
     description TEXT,
     image VARCHAR(255),

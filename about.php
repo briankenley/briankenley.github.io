@@ -73,7 +73,7 @@ session_start();
           <div class="d-flex align-items-center"> <?php // Added align-items-center ?>
             <?php if (isset($_SESSION['userid'])): ?>
                 <?php // Display welcome message and logout button ?>
-                <span class="navbar-text me-3">Selamat datang, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
+                <span class="navbar-text me-3">Selamat datang, <?php echo $_SESSION['username']; ?>!</span>
                 <a href="logout.php" class="btn btn-outline-danger">Keluar</a>
             <?php else: ?>
                 <?php // Display login and signup buttons ?>
@@ -118,7 +118,7 @@ session_start();
                   kewajiban negosiasi dengan banyak pembeli
                 </li>
               </ul>
-              <a href="#" class="btn btn-primary px-4 py-2"
+              <a href="jual.php" class="btn btn-primary px-4 py-2"
                 >Ajukan Penawaran Sekarang</a
               >
             </div>

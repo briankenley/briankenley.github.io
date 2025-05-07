@@ -5,28 +5,26 @@ require_once "db.php";
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST["username"]);
-    $password = trim($_POST["password"]);
+    // Directly use POST data (UNSAFE)
+    $username = $_POST["username"] ?? '';
+    $password = $_POST["password"] ?? '';
 
     if (empty($username) || empty($password)) {
         $error = "Username and password are required.";
     } else {
-        // Fetch id, password, and role
-        $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $stmt->store_result();
+        // Direct SQL query (UNSAFE)
+        $sql = "SELECT id, password, role FROM users WHERE username = '$username'";
+        $result = $conn->query($sql);
 
-        if ($stmt->num_rows == 1) {
-            // Bind id, hashed_password, and role
-            $stmt->bind_result($id, $hashed_password, $role);
-            $stmt->fetch();
+        if ($result && $result->num_rows == 1) {
+            $user = $result->fetch_assoc();
 
-            if (password_verify($password, $hashed_password)) {
+            // Simple password comparison (UNSAFE)
+            if ($password === $user['password']) {
                 // Store user info in session
-                $_SESSION["userid"] = $id;
-                $_SESSION["username"] = $username;
-                $_SESSION["role"] = $role; // Store the role
+                $_SESSION["userid"] = $user['id'];
+                $_SESSION["username"] = $username; // Use the submitted username
+                $_SESSION["role"] = $user['role'];
                 header("Location: dashboard.php"); // Redirect to dashboard
                 exit();
             } else {
@@ -35,8 +33,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $error = "Invalid username or password.";
         }
-        $stmt->close();
+        // No statement to close
     }
+    // Close connection if needed (optional here as script might end)
+    if ($conn) $conn->close();
 }
 ?>
 
@@ -77,16 +77,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="card p-4 shadow" style="width: 350px;">
         <h2 class="text-center">Login</h2>
         <?php if ($error): ?>
-            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+            <div class="alert alert-danger"><?php echo $error; ?></div> <?php // Removed htmlspecialchars ?>
         <?php endif; ?>
         <form method="post" action="login.php">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
-                <input type="text" id="username" name="username" class="form-control" required />
+                <input type="text" id="username" name="username" class="form-control" /> <?php // Removed required ?>
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required />
+                <input type="password" id="password" name="password" class="form-control" /> <?php // Removed required ?>
             </div>
             <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>

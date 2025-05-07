@@ -18,24 +18,15 @@
 session_start();
 include 'db.php';
 
-// Log PHP Integer Max Size
-error_log("PHP_INT_MAX: " . PHP_INT_MAX);
-
-// Attempt to relax SQL mode for this session to potentially avoid truncation issues
-if ($conn) {
-    $conn->query("SET SESSION sql_mode = ''");
-}
-
 // Redirect if not logged in
 if (!isset($_SESSION['userid'])) {
-    header("Location: login.php?message=Silakan login untuk menjual mobil.");
+    header("Location: login.php"); // Simple redirect
     exit();
 }
 
-// --- Redirect Admin Users ---
-// If the logged-in user is an admin, redirect them to the dedicated admin page
+// Redirect Admin Users
 if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
-    header("Location: admin_add_car.php?message=Gunakan halaman ini untuk menambah mobil.");
+    header("Location: admin_add_car.php"); // Redirect admin
     exit();
 }
 
@@ -45,81 +36,88 @@ $success_message = '';
 $error_message = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Validate and sanitize inputs (basic validation)
-    $make = trim($_POST['name'] ?? '');
-    $model = trim($_POST['model'] ?? '');
-    $year = filter_input(INPUT_POST, 'year', FILTER_VALIDATE_INT);
-    // Get price as string, validate as non-negative integer string for BIGINT
-    $price_input = trim($_POST['price'] ?? '');
-    $is_valid_price_format = is_numeric($price_input) && strpos($price_input, '.') === false && strpos($price_input, ',') === false && strpos(trim($price_input), '-') !== 0;
-    $price_int_value = $is_valid_price_format ? (int)$price_input : false; // Cast only if valid format
+    // Directly use POST data (UNSAFE - as requested)
+    $make = $_POST['name'] ?? '';
+    $model = $_POST['model'] ?? '';
+    $year = $_POST['year'] ?? '';
+    $price = $_POST['price'] ?? '';
+    $mileage = $_POST['mileage'] ?? '';
+    $description = $_POST['description'] ?? '';
+    $image_path = 'placeholder.png'; // Default image if none uploaded or error
 
-    $mileage = filter_input(INPUT_POST, 'mileage', FILTER_VALIDATE_INT);
-    $description = trim($_POST['description'] ?? '');
-    $image_path = ''; // Placeholder for image path
+    // Handle image upload
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
+        $target_dir = "uploads/";
+        // Check/create directory
+        if (!file_exists($target_dir)) {
+            if (!mkdir($target_dir, 0777, true)) {
+                $error_message = "Gagal membuat direktori uploads.";
+                goto skip_db_insert; // Skip insert if directory fails
+            }
+        } elseif (!is_writable($target_dir)) {
+             $error_message = "Direktori uploads tidak dapat ditulis.";
+             goto skip_db_insert; // Skip insert if not writable
+        }
 
-    // --- Basic Input Validation ---
-    // Validate price as a non-negative integer string
-    if (empty($make) || empty($model) || $year === false || !$is_valid_price_format || $price_int_value === false || $mileage === false || empty($description)) {
-         $error_message = "Semua field wajib diisi dengan benar. Pastikan harga (angka bulat tanpa titik/koma) dan jarak tempuh adalah angka numerik yang valid dan tidak negatif.";
+        $image_name = time() . '_' . preg_replace("/[^a-zA-Z0-9.]/", "_", basename($_FILES["image"]["name"])); // Sanitize filename
+        $target_file = $target_dir . $image_name;
+        $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+
+        // Check if image file is an actual image
+        $check = getimagesize($_FILES["image"]["tmp_name"]);
+        if ($check === false) {
+            $error_message = "File bukan gambar.";
+        } else {
+            // Allow certain file formats
+            $allowed_types = ['jpg', 'png', 'jpeg', 'gif'];
+            if (!in_array($imageFileType, $allowed_types)) {
+                $error_message = "Maaf, hanya file JPG, JPEG, PNG & GIF yang diperbolehkan.";
+            } else {
+                // Attempt to move the uploaded file
+                if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+                    $image_path = $target_file; // Set the full path for DB
+                } else {
+                    $error_message = "Maaf, terjadi kesalahan saat mengunggah file Anda.";
+                    // Keep default image_path if upload fails
+                }
+            }
+        }
+    } elseif (isset($_FILES['image']) && $_FILES['image']['error'] != UPLOAD_ERR_NO_FILE) {
+         // Handle other upload errors
+         $error_message = "Terjadi kesalahan saat mengunggah gambar (Error code: " . $_FILES['image']['error'] . ").";
     }
-    // --- Image Upload Handling (Placeholder) ---
-    // A real implementation would involve:
-    // 1. Checking $_FILES['image']['error']
-    // 2. Validating file type and size
-    // 3. Generating a unique filename
-    // 4. Moving the uploaded file using move_uploaded_file()
-    // 5. Storing the final path/filename in $image_path
-    elseif (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
-         // Basic example: use original name (NOT recommended for production)
-         // $target_dir = "uploads/"; // Make sure this directory exists and is writable
-         // $image_path = $target_dir . basename($_FILES["image"]["name"]);
-         // if (move_uploaded_file($_FILES["image"]["tmp_name"], $image_path)) {
-              // File uploaded successfully
-              $image_path = basename($_FILES["image"]["name"]); // Store just the name for now
-         // } else {
-         //     $error_message = "Maaf, terjadi error saat mengupload gambar.";
-         //     $image_path = ''; // Reset path on error
-         // }
-         // For now, just store the filename as a placeholder if uploaded
-         $image_path = $conn->real_escape_string(basename($_FILES["image"]["name"]));
-    } else {
-        // Handle cases where image is not uploaded or error occurred
-        // $error_message = "Gambar wajib diupload."; // Uncomment if image is strictly required
-        $image_path = ''; // No image uploaded or error
+    // else: No file uploaded (UPLOAD_ERR_NO_FILE), use default image_path
+
+    // Basic validation
+    if (empty($make) || empty($model) || empty($year) || empty($price) || empty($mileage)) { // Description is optional now
+        $error_message = "Mohon isi semua field wajib (Merk, Model, Tahun, Harga, Jarak Tempuh).";
     }
 
+    skip_db_insert: // Label for goto
 
-    // Proceed only if no validation errors so far
+    // Proceed with insert only if no critical error occurred
     if (empty($error_message)) {
-        // Use prepared statement to prevent SQL injection
-        $sql = "INSERT INTO cars (user_id, make, model, year, price, mileage, description, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-
+        // Use prepared statement for security
+        $stmt = $conn->prepare("INSERT INTO cars (user_id, make, model, year, price, mileage, description, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         if ($stmt) {
-            // Log the price integer value just before binding
-            error_log("Attempting to bind price (int value): " . $price_int_value);
-
-            // Bind parameters (i: integer) - Binding price as integer for BIGINT
-            $stmt->bind_param("issiiiss", $user_id, $make, $model, $year, $price_int_value, $mileage, $description, $image_path); // Bind the integer value
-
+            $stmt->bind_param("issidiss", $user_id, $make, $model, $year, $price, $mileage, $description, $image_path);
             if ($stmt->execute()) {
                 $success_message = "Mobil berhasil ditambahkan.";
-                error_log("Car added successfully with price (int value): " . $price_int_value); // Log on success
-                // Optionally clear form or redirect
-                // header("Location: dashboard.php"); exit();
+                // Clear form fields or redirect here if desired
             } else {
                 $error_message = "Error: Gagal menambahkan mobil. " . $stmt->error;
-                error_log("Error adding car: " . $stmt->error . " | Price int value attempted: " . $price_int_value); // Log on error
             }
             $stmt->close();
         } else {
-            $error_message = "Error: Gagal mempersiapkan statement. " . $conn->error;
-            error_log("Error preparing statement: " . $conn->error); // Log prepare error
+             $error_message = "Error: Gagal menyiapkan statement. " . $conn->error;
         }
     }
 }
-$conn->close(); // Close connection after processing
+
+// Close connection
+if ($conn) {
+    $conn->close();
+}
 ?>
   <body>
     <nav
@@ -199,44 +197,38 @@ $conn->close(); // Close connection after processing
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="jual.php" enctype="multipart/form-data" class="needs-validation" novalidate>
+        <!-- Simplified Form -->
+        <form method="POST" action="jual.php" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="name" class="form-label">Merk Mobil</label>
-                <input type="text" name="name" class="form-control" id="name" required>
-                <div class="invalid-feedback">Merk mobil wajib diisi.</div>
+                <input type="text" name="name" class="form-control" id="name">
             </div>
             <div class="mb-3">
                 <label for="model" class="form-label">Model Mobil</label>
-                <input type="text" name="model" class="form-control" id="model" required>
-                 <div class="invalid-feedback">Model mobil wajib diisi.</div>
+                <input type="text" name="model" class="form-control" id="model">
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="year" class="form-label">Tahun</label>
-                    <input type="number" name="year" class="form-control" id="year" placeholder="Contoh: 2022" required min="1900" max="<?php echo date('Y') + 1; // Allow next year ?>">
-                    <div class="invalid-feedback">Tahun wajib diisi (antara 1900 - <?php echo date('Y') + 1; ?>).</div>
+                    <input type="number" name="year" class="form-control" id="year" placeholder="Contoh: 2022">
                 </div>
                  <div class="col-md-6 mb-3">
-                     <label for="price" class="form-label">Harga (Rp - Angka Bulat)</label>
-                     <input type="number" inputmode="numeric" pattern="[0-9]*" name="price" class="form-control" id="price" placeholder="Contoh: 250000000" required min="0">
-                      <div class="invalid-feedback">Harga wajib diisi (angka bulat positif).</div>
+                     <label for="price" class="form-label">Harga (Rp)</label>
+                     <input type="number" name="price" class="form-control" id="price" placeholder="Contoh: 250000000">
                  </div>
              </div>
              <div class="mb-3">
                 <label for="mileage" class="form-label">Jarak Tempuh (km)</label>
-                <input type="number" name="mileage" class="form-control" id="mileage" placeholder="Contoh: 15000" required min="0">
-                 <div class="invalid-feedback">Jarak tempuh wajib diisi (angka positif).</div>
+                <input type="number" name="mileage" class="form-control" id="mileage" placeholder="Contoh: 15000">
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">Deskripsi</label>
-                <textarea name="description" class="form-control" id="description" rows="4" placeholder="Jelaskan kondisi mobil, fitur unggulan, dll." required></textarea>
-                 <div class="invalid-feedback">Deskripsi wajib diisi.</div>
+                <textarea name="description" class="form-control" id="description" rows="4" placeholder="Jelaskan kondisi mobil..."></textarea>
             </div>
             <div class="mb-3">
                 <label for="image" class="form-label">Gambar Mobil</label>
                 <input type="file" name="image" class="form-control" id="image" accept="image/jpeg, image/png, image/gif">
-                <div class="form-text">Upload gambar mobil (format: JPG, PNG, GIF). Ukuran maks: 2MB (contoh).</div>
-                <!-- Add validation feedback if needed -->
+                <div class="form-text">Upload gambar mobil (opsional).</div>
             </div>
             <button type="submit" class="btn btn-primary btn-lg w-100">Tambahkan Mobil</button>
         </form>
@@ -244,7 +236,7 @@ $conn->close(); // Close connection after processing
 
     <?php include 'footer.php';?>
 
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Removed client-side validation script -->
   </body>
 </html>

@@ -5,52 +5,23 @@ $admin_username = 'admin';
 $admin_password = 'admin'; // Plain text password
 $admin_role = 'admin';
 
-// Hash the password
-$hashed_password = password_hash($admin_password, PASSWORD_DEFAULT);
+// Check if admin user already exists (UNSAFE query)
+$check_sql = "SELECT id FROM users WHERE username = '$admin_username'";
+$check_result = $conn->query($check_sql);
 
-if ($hashed_password === false) {
-    die("Error hashing password.\n");
-}
-
-// Check if admin user already exists
-$check_sql = "SELECT id FROM users WHERE username = ?";
-$check_stmt = $conn->prepare($check_sql);
-
-if ($check_stmt === false) {
-    die("Error preparing check statement: " . $conn->error . "\n");
-}
-
-$check_stmt->bind_param("s", $admin_username);
-$check_stmt->execute();
-$check_result = $check_stmt->get_result();
-
-if ($check_result->num_rows > 0) {
+if ($check_result && $check_result->num_rows > 0) {
     echo "Admin user '{$admin_username}' already exists.\n";
-    $check_stmt->close();
-    $conn->close();
-    exit(); // Exit if admin already exists
-}
-$check_stmt->close();
-
-
-// Prepare the SQL statement to insert the admin user
-$sql = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
-$stmt = $conn->prepare($sql);
-
-if ($stmt === false) {
-    die("Error preparing insert statement: " . $conn->error . "\n");
-}
-
-// Bind parameters and execute
-$stmt->bind_param("sss", $admin_username, $hashed_password, $admin_role);
-
-if ($stmt->execute()) {
-    echo "Admin user '{$admin_username}' created successfully.\n";
 } else {
-    echo "Error creating admin user '{$admin_username}': " . $stmt->error . "\n";
+    // Insert the admin user with plain text password (UNSAFE query)
+    $sql = "INSERT INTO users (username, password, role) VALUES ('$admin_username', '$admin_password', '$admin_role')";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Admin user '{$admin_username}' created successfully.\n";
+    } else {
+        echo "Error creating admin user '{$admin_username}': " . $conn->error . "\n";
+    }
 }
 
-// Close the statement and connection
-$stmt->close();
+// Close the connection
 $conn->close();
 ?>

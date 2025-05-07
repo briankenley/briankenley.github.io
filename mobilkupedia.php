@@ -41,7 +41,8 @@ session_start();
             <li class="nav-item">
               <a class="nav-link active" href="mobilkupedia.php">Beranda</a> <?php // Corrected link and added active class ?>
             </li>
-            <?php if (isset($_SESSION['userid'])): // Show Dashboard, Jual/Tambah, Beli only if logged in ?>
+            <?php // Links visible whether logged in or not, but some depend on session state ?>
+            <?php if (isset($_SESSION['userid'])): ?>
               <li class="nav-item">
                 <a class="nav-link" href="dashboard.php">Dashboard</a>
               </li>
@@ -58,12 +59,18 @@ session_start();
               <li class="nav-item">
                 <a class="nav-link" href="beli.php">Beli Mobil</a>
               </li>
-            <?php else: // Show Beli Mobil even if not logged in, but it will redirect ?>
+            <?php else: // If not logged in, still show Beli Mobil link ?>
               <li class="nav-item">
-                <a class="nav-link" href="beli.php">Beli Mobil</a>
+                 <a class="nav-link" href="dashboard.php">Dashboard</a> <?php // Beli link always visible ?>
+              </li>
+              <li class="nav-item">
+                 <a class="nav-link" href="jual.php">Jual Mobil</a> <?php // Beli link always visible ?>
+              </li>
+              <li class="nav-item">
+                 <a class="nav-link" href="beli.php">Beli Mobil</a> <?php // Beli link always visible ?>
               </li>
             <?php endif; ?>
-            </li>
+            <?php // Always show About and Contact ?>
             <li class="nav-item">
               <a class="nav-link" href="about.php">Tentang Kami</a>
             </li>
@@ -74,7 +81,7 @@ session_start();
           <div class="d-flex align-items-center"> <?php // Added align-items-center for better vertical alignment ?>
             <?php if (isset($_SESSION['userid'])): ?>
                 <?php // Display welcome message and logout button ?>
-                <span class="navbar-text me-3">Selamat datang, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
+                <span class="navbar-text me-3">Selamat datang, <?php echo $_SESSION['username']; ?>!</span>
                 <a href="logout.php" class="btn btn-outline-danger">Keluar</a>
             <?php else: ?>
                 <?php // Display login and signup buttons ?>
@@ -86,7 +93,7 @@ session_start();
       </div>
     </nav>
 
-    <section class="hero-section text-center" style="background-image: url(background.jpg); opacity: 70%; width: 100%;">
+    <section class="hero-section text-center" style="background-image: url(background.jpg); opacity: 0.7; width: 100%; background-size: cover; background-position: center;">
 
       <div class="container" >
         

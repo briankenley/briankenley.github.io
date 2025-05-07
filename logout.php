@@ -5,19 +5,8 @@ session_start(); // Start the session
 $_SESSION = array();
 
 // Destroy the session
-if (session_destroy()) {
-    // Optional: Delete the session cookie if needed
-    // if (ini_get("session.use_cookies")) {
-    //     $params = session_get_cookie_params();
-    //     setcookie(session_name(), '', time() - 42000,
-    //         $params["path"], $params["domain"],
-    //         $params["secure"], $params["httponly"]
-    //     );
-    // }
-    $logout_message = "Anda telah berhasil keluar.";
-} else {
-    $logout_message = "Terjadi kesalahan saat mencoba keluar."; // Should ideally not happen
-}
+session_destroy();
+$logout_message = "Anda telah berhasil keluar.";
 ?>
 
 <!DOCTYPE html>

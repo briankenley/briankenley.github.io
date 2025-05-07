@@ -16,29 +16,28 @@
   />
 <?php
 session_start();
-include 'db.php'; // Include database connection
 
-// Check if user is logged in
+// Check if the user is logged in. If not, redirect to login page.
 if (!isset($_SESSION['userid'])) {
-    // Redirect to login page if not logged in
-    header("Location: login.php?message=Silakan login untuk melihat daftar mobil.");
-    exit();
+    header('Location: login.php');
+    exit; // Stop script execution after redirection
 }
 
-// --- Search Logic ---
-$search_keyword = isset($_GET['keyword']) ? trim(mysqli_real_escape_string($conn, $_GET['keyword'])) : '';
+include 'db.php'; // Include database connection
 
-$sql = "SELECT id, make, model, year, price, mileage, image, description FROM cars"; // Added description
+$search_keyword = $_GET['keyword'] ?? ''; 
 
-// Build WHERE clause for search
+$sql = "SELECT id, make, model, year, price, mileage, image, description FROM cars";
+
 if (!empty($search_keyword)) {
     $sql .= " WHERE make LIKE '%$search_keyword%' OR model LIKE '%$search_keyword%' OR description LIKE '%$search_keyword%'";
 }
 
-$sql .= " ORDER BY created_at DESC"; // Default sorting
+$sql .= " ORDER BY created_at DESC";
 
 $result = $conn->query($sql);
 
+// NOTE: Connection is closed later in the script
 ?>
   <body>
     <nav
@@ -99,25 +98,17 @@ $result = $conn->query($sql);
 
     <section class="py-5 bg-light" id="beli">
       <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title mb-0">Cari Mobil Impian Anda</h2>
-            <?php // Add Car button for Admin - Link to admin page ?>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                <a href="admin_add_car.php" class="btn btn-success">
-                    <i class="fas fa-plus me-1"></i> Tambah Mobil (Admin)
-                </a>
-            <?php endif; ?>
-        </div>
+        <h2 class="section-title mb-4 text-center">Cari Mobil Impian Anda</h2>
 
         <!-- Search Form -->
         <form action="beli.php" method="GET" class="search-form mb-4">
           <div class="row g-2 justify-content-center">
             <div class="col-md-6">
               <label for="searchInput" class="form-label visually-hidden">Kata Kunci Pencarian</label>
-              <input type="text" class="form-control form-control-lg" id="searchInput" name="keyword" placeholder="Cari mobil (cth: Avanza, X- Trail, Jazz)" value="<?php echo htmlspecialchars($search_keyword); ?>">
+              <input type="text" class="form-control form-control-lg" id="searchInput" name="keyword" placeholder="Cari mobil (cth: Avanza, X- Trail, Jazz)" value="<?php echo $search_keyword; ?>">
             </div>
             <div class="col-md-2">
-              <button type="submit" class="btn btn-primary btn-lg w-100">Cari Mobil</button>
+              <button type="submit" class="btn btn-primary btn-lg w-100">Cari</button>
             </div>
           </div>
         </form>
@@ -130,15 +121,15 @@ $result = $conn->query($sql);
               <div class="col-md-4">
                 <div class="card car-card border-0 shadow-sm h-100">
                   <img
-                    src="<?php echo !empty($car['image']) ? htmlspecialchars($car['image']) : 'placeholder.png'; // Use placeholder if no image ?>"
+                    src="<?php echo !empty($car['image']) ? $car['image'] : 'placeholder.png'; // Use placeholder if no image ?>"
                     style="height: 250px; object-fit: cover;"
                     class="card-img-top"
-                    alt="<?php echo htmlspecialchars($car['make']) . ' ' . htmlspecialchars($car['model']); ?>"
+                    alt="<?php echo $car['make'] . ' ' . $car['model']; ?>"
                   />
                   <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                      <h5 class="card-title mb-0"><?php echo htmlspecialchars($car['make']) . ' ' . htmlspecialchars($car['model']); ?></h5>
-                      <span class="badge badge-custom"><?php echo htmlspecialchars($car['year']); ?></span>
+                      <h5 class="card-title mb-0"><?php echo $car['make'] . ' ' . $car['model']; ?></h5>
+                      <span class="badge badge-custom"><?php echo $car['year']; ?></span>
                     </div>
                     <p class="text-primary fw-bold">Rp <?php echo number_format($car['price'], 0, ',', '.'); ?></p>
                     <div class="d-flex mb-3">
@@ -156,19 +147,13 @@ $result = $conn->query($sql);
           <?php else: ?>
             <div class="col-12">
               <div class="alert alert-warning text-center" role="alert">
-                Tidak ada mobil yang ditemukan dengan kata kunci "<?php echo htmlspecialchars($search_keyword); ?>". Silakan coba kata kunci lain.
+                Tidak ada mobil yang ditemukan dengan kata kunci "<?php echo $search_keyword; ?>". Silakan coba kata kunci lain.
               </div>
             </div>
           <?php endif; ?>
-          <?php $conn->close(); // Close connection after displaying results ?>
+          <?php if ($conn) $conn->close(); // Close connection after displaying results ?>
         </div>
         <!-- End Car Listing -->
-
-
-
-<div class="text-center mt-4">
-          <a href="#" class="btn btn-outline-primary px-4">Lihat Lebih Banyak</a>
-        </div>
       </div>
     </section>
     <?php include 'footer.php';?>

@@ -6,36 +6,32 @@ $error = "";
 $success = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST["username"]);
-    $password = trim($_POST["password"]);
+    // Directly use POST data (UNSAFE)
+    $username = $_POST["username"] ?? '';
+    $password = $_POST["password"] ?? '';
 
     if (empty($username) || empty($password)) {
         $error = "Username and password are required.";
     } else {
-        // Check if username already exists
-        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $stmt->store_result();
+        // Check if username already exists (UNSAFE query)
+        $sql_check = "SELECT id FROM users WHERE username = '$username'";
+        $result_check = $conn->query($sql_check);
 
-        if ($stmt->num_rows > 0) {
+        if ($result_check && $result_check->num_rows > 0) {
             $error = "Username already taken.";
         } else {
-            $stmt->close();
+            // Insert new user (UNSAFE query, storing plain password)
+            $sql_insert = "INSERT INTO users (username, password) VALUES ('$username', '$password')";
 
-            // Insert new user
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-            $stmt->bind_param("ss", $username, $hashed_password);
-
-            if ($stmt->execute()) {
+            if ($conn->query($sql_insert) === TRUE) {
                 $success = "Registration successful. You can now <a href='login.php'>login</a>.";
             } else {
-                $error = "Error during registration. Please try again.";
+                $error = "Error during registration. Please try again. " . $conn->error; // Added DB error for debugging
             }
         }
-        $stmt->close();
     }
+    // Close connection if needed
+    if ($conn) $conn->close();
 }
 ?>
 
@@ -76,19 +72,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="card p-4 shadow" style="width: 350px;">
         <h2 class="text-center">Daftar</h2>
         <?php if ($error): ?>
-            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+            <div class="alert alert-danger"><?php echo $error; ?></div> <?php // Removed htmlspecialchars ?>
         <?php endif; ?>
         <?php if ($success): ?>
-            <div class="alert alert-success"><?php echo $success; ?></div>
+            <div class="alert alert-success"><?php echo $success; ?></div> <?php // Success message already contains HTML ?>
         <?php endif; ?>
         <form method="post" action="signup.php">
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
-                <input type="text" id="username" name="username" class="form-control" required />
+                <input type="text" id="username" name="username" class="form-control" /> <?php // Removed required ?>
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required />
+                <input type="password" id="password" name="password" class="form-control" /> <?php // Removed required ?>
             </div>
             <button type="submit" class="btn btn-primary w-100">Daftar</button>
         </form>

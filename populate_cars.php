@@ -45,75 +45,42 @@ $cars_data = [
     ]
 ];
 
-// Prepare the SQL statement once
-$sql = "INSERT INTO cars (user_id, make, model, year, price, mileage, description, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-$stmt = $conn->prepare($sql);
-
-if ($stmt === false) {
-    die("Error preparing statement: " . $conn->error);
-}
-
-// Bind parameters and execute for each car
 $inserted_count = 0;
-$errors = [];
+$error_count = 0;
+
+echo "Attempting to insert car data...\n";
 
 foreach ($cars_data as $car) {
-    // Check if car already exists (optional, based on make/model/year for simplicity)
-    $check_sql = "SELECT id FROM cars WHERE make = ? AND model = ? AND year = ?";
-    $check_stmt = $conn->prepare($check_sql);
-    if ($check_stmt) {
-        $check_stmt->bind_param("ssi", $car['make'], $car['model'], $car['year']);
-        $check_stmt->execute();
-        $check_result = $check_stmt->get_result();
-        $exists = $check_result->num_rows > 0;
-        $check_stmt->close();
+    // Directly build and execute INSERT query (UNSAFE)
+    // Note: Assumes values are safe for direct insertion as per simplification request
+    $user_id = $car['user_id'];
+    $make = $car['make']; // No escaping
+    $model = $car['model']; // No escaping
+    $year = $car['year'];
+    $price = $car['price'];
+    $mileage = $car['mileage'];
+    $description = $car['description']; // No escaping
+    $image = $car['image']; // No escaping
 
-        if ($exists) {
-            echo "Skipping: {$car['make']} {$car['model']} ({$car['year']}) already exists.\n";
-            continue; // Skip insertion if it already exists
-        }
-    } else {
-        echo "Warning: Could not prepare check statement: " . $conn->error . "\n";
-        // Continue insertion attempt even if check fails
-    }
+    $sql = "INSERT INTO cars (user_id, make, model, year, price, mileage, description, image)
+            VALUES ('$user_id', '$make', '$model', '$year', '$price', '$mileage', '$description', '$image')";
 
-
-    // Bind parameters for insertion
-    $stmt->bind_param(
-        "issidiss", // i: integer, s: string, d: double
-        $car['user_id'],
-        $car['make'],
-        $car['model'],
-        $car['year'],
-        $car['price'],
-        $car['mileage'],
-        $car['description'],
-        $car['image']
-    );
-
-    // Execute the statement
-    if ($stmt->execute()) {
+    if ($conn->query($sql) === TRUE) {
         $inserted_count++;
         echo "Successfully inserted: {$car['make']} {$car['model']}\n";
     } else {
-        $errors[] = "Error inserting {$car['make']} {$car['model']}: " . $stmt->error;
-        echo "Error inserting {$car['make']} {$car['model']}: " . $stmt->error . "\n";
+        $error_count++;
+        echo "Error inserting {$car['make']} {$car['model']}: " . $conn->error . "\n";
     }
 }
 
-// Close the statement and connection
-$stmt->close();
+// Close the connection
 $conn->close();
 
 echo "\n--------------------\n";
 echo "Script finished.\n";
 echo "Total cars inserted: " . $inserted_count . "\n";
-if (!empty($errors)) {
-    echo "Errors encountered:\n";
-    foreach ($errors as $error) {
-        echo "- " . $error . "\n";
-    }
-}
+echo "Total errors: " . $error_count . "\n";
 echo "--------------------\n";
 
 ?>
